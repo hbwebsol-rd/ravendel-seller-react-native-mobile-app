@@ -4,8 +4,8 @@ import Colors from '../../utils/color';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {Image} from 'react-native';
 import {isEmpty} from '../../utils/helper';
-import {BottomSheet, ListItem} from "@rneui/themed";
-import ImagePicker from 'react-native-image-picker';
+import {BottomSheet, ListItem} from '@rneui/themed';
+import * as ImagePicker from 'react-native-image-picker';
 
 const FeaturedImageComponents = ({image, inputChange, removeImage}) => {
   /* =============================States============================= */
@@ -21,7 +21,7 @@ const FeaturedImageComponents = ({image, inputChange, removeImage}) => {
   };
 
   /* =============================Upload Featured Image============================= */
-  const UploadImage = (response) => {
+  const UploadImage = response => {
     if (response.didCancel) {
       // console.log('User cancelled image picker');
     } else if (response.error) {
@@ -30,7 +30,7 @@ const FeaturedImageComponents = ({image, inputChange, removeImage}) => {
       console.log('User tapped custom button: ', response.customButton);
     } else {
       // const source = { uri: 'data:image/jpeg;base64,' + response.data };
-      inputChange(response.uri);
+      inputChange(response.assets[0].uri);
       console.log('response.uri', response.uri);
     }
     setUploadModal(false);
@@ -41,7 +41,7 @@ const FeaturedImageComponents = ({image, inputChange, removeImage}) => {
     {
       title: 'Take Photo',
       onPress: () => {
-        ImagePicker.launchCamera(options, (response) => {
+        ImagePicker.launchCamera(options, response => {
           UploadImage(response);
         });
       },
@@ -49,7 +49,7 @@ const FeaturedImageComponents = ({image, inputChange, removeImage}) => {
     {
       title: 'Choose from library',
       onPress: () => {
-        ImagePicker.launchImageLibrary(options, (response) => {
+        ImagePicker.launchImageLibrary(options, response => {
           UploadImage(response);
         });
       },

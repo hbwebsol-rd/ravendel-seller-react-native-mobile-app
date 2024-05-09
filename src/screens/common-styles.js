@@ -42,8 +42,6 @@ const Styles = StyleSheet.create({
     height: 20,
   },
   headerSeprator: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
     backgroundColor: '#f2f2f2',
     height: 20,
   },

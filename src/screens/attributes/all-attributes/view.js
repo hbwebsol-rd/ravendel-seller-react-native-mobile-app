@@ -56,6 +56,7 @@ const AllAttributesView = ({navigation}) => {
     },
     onCompleted: data => {
       // Handle completion as needed
+      GraphqlSuccess('Deleted successfully');
       console.log('Attribute deleted successfully:', data);
     },
   });

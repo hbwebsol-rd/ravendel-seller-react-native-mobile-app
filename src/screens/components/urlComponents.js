@@ -6,6 +6,8 @@ import {BASE_URL} from '../../utils/helper';
 import AppLoader from './loader';
 import axios from 'axios';
 import SyncStorage from 'sync-storage';
+import {GET_URL} from '../../queries/productQueries';
+import {mutation} from '../../utils/service';
 
 const URLComponents = ({url, updateOf, changePermalink, updatePermalink}) => {
   const [editPremalink, setEditPermalink] = useState(false);
@@ -15,40 +17,14 @@ const URLComponents = ({url, updateOf, changePermalink, updatePermalink}) => {
     if (editPremalink) {
       setLoading(true);
       isUrlExist(url);
+      setLoading(false);
     }
     setEditPermalink(!editPremalink);
   };
 
-  const getUpdatedUrl = async (table, url) => {
-    const token = SyncStorage.get('token');
-    return axios
-      .post(
-        `${BASE_URL}apis/misc/checkurl`,
-        {
-          url: url,
-          table: table,
-        },
-        {
-          headers: {
-            Authorization: token,
-          },
-        },
-      )
-      .then(function (response) {
-        if (response.data.success) {
-          setLoading(false);
-          return response.data.url;
-        }
-      })
-      .catch(function (error) {
-        setLoading(false);
-        console.log(error);
-      });
-  };
-
   const isUrlExist = async url => {
-    let updatedUrl = await getUpdatedUrl(updateOf, url);
-    updatePermalink(updatedUrl);
+    let updatedUrl = await mutation(GET_URL, {url: url});
+    updatePermalink(updatedUrl.data.validateUrl.url);
   };
 
   return (

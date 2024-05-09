@@ -1,7 +1,7 @@
-import jumpTo from './navigation';
+// import jumpTo from './navigation';
 import axios from 'axios';
 import {getToken, isEmpty} from './helper';
-import APclient from '../Client';
+import APclient from '../client';
 import {useQuery} from '@apollo/client';
 import {loginURL} from './baseurl';
 

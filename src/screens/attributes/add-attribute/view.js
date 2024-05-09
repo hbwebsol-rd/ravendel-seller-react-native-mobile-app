@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import AppLoader from '../../components/loader';
-import {Input} from "@rneui/themed";
+import {Input} from '@rneui/themed';
 import {AddAttributeWrapper, FormWrapper, NotesForAttribute} from './styles';
 import {useMutation} from '@apollo/client';
 import {ADD_ATTRIBUTE} from '../../../queries/attributesQueries';
@@ -18,11 +18,12 @@ const AddAttrView = ({navigation}) => {
     value: '',
   });
 
-  const [addAttributes, {loading: addedLoading}] = useMutation(ADD_ATTRIBUTE, {
-    onError: (error) => {
+  const [addAttribute, {loading: addedLoading}] = useMutation(ADD_ATTRIBUTE, {
+    onError: error => {
       GraphqlError(error);
     },
-    onCompleted: (data) => {
+    onCompleted: data => {
+      console.log(data, 'add attri');
       GraphqlSuccess('Added successfully');
       setAttribute({
         name: '',
@@ -45,7 +46,7 @@ const AddAttrView = ({navigation}) => {
         value: '',
       });
       var string = attribute.value;
-      var valuesArray = string.split('\n').map((val) => {
+      var valuesArray = string.split('\n').map(val => {
         return {
           name: val,
         };
@@ -58,7 +59,7 @@ const AddAttrView = ({navigation}) => {
         values: attribute.arrayValue,
       };
 
-      addAttributes({
+      addAttribute({
         variables: {
           attribute: attrObject,
         },
@@ -79,7 +80,7 @@ const AddAttrView = ({navigation}) => {
           <Input
             label="Name"
             value={attribute.name}
-            onChangeText={(value) =>
+            onChangeText={value =>
               setAttribute({...attribute, ['name']: value})
             }
             errorMessage={validation.name}
@@ -87,7 +88,7 @@ const AddAttrView = ({navigation}) => {
           <Input
             label="Items"
             value={attribute.value}
-            onChangeText={(value) =>
+            onChangeText={value =>
               setAttribute({...attribute, ['value']: value})
             }
             multiline

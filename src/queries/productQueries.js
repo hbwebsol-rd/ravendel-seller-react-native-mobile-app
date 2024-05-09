@@ -38,26 +38,12 @@ const PRODUCT_TILE_DATA = gql`
     shipping
     taxClass
     meta
-    custom_field
-    attribute
-    attribute_master {
-      id
-      name
-      attribute_values
-      createdAt
-      updatedAt
-    }
-    variant
-    variation_master {
-      id
-      productId
-      combination
-      quantity
-      sku
-      image
-      pricing
-      createdAt
-      updatedAt
+    specifications {
+      key
+      group
+      attributeId
+      value
+      attributeValueId
     }
     date
     updated
@@ -82,6 +68,14 @@ const GET_CATEGORIES = gql`
         message
         success
       }
+    }
+  }
+`;
+
+const GET_URL = gql`
+  mutation ValidateUrl($url: String!) {
+    validateUrl(url: $url) {
+      url
     }
   }
 `;
@@ -119,15 +113,8 @@ const ADD_CATEGORY = gql`
       image: $image
       meta: $meta
     ) {
-      id
-      name
-      parentId
-      url
-      description
-      image
-      meta
-      date
-      updated
+      message
+      success
     }
   }
 `;
@@ -151,15 +138,8 @@ const UPDATE_CATEGORY = gql`
       update_image: $update_image
       meta: $meta
     ) {
-      id
-      name
-      parentId
-      url
-      description
-      image
-      meta
-      date
-      updated
+      message
+      success
     }
   }
 `;
@@ -167,15 +147,8 @@ const UPDATE_CATEGORY = gql`
 const DELETE_CATEGORY = gql`
   mutation ($id: ID!) {
     deleteProductCategory(id: $id) {
-      id
-      name
-      parentId
-      url
-      description
-      image
-      meta
-      date
-      updated
+      message
+      success
     }
   }
 `;
@@ -227,12 +200,9 @@ const ADD_PRODUCT = gql`
     $featured_product: Boolean
     $product_type: customObject
     $shipping: customObject
-    $tax_class: String
+    $taxClass: String
     $meta: customObject
-    $custom_field: [customObject]
-    $attribute: [customObject]
-    $variant: customArray
-    $combinations: [customObject]
+    $specifications: [productSpecificationInput]
   ) {
     addProduct(
       name: $name
@@ -250,17 +220,14 @@ const ADD_PRODUCT = gql`
       featured_product: $featured_product
       product_type: $product_type
       shipping: $shipping
-      tax_class: $tax_class
+      taxClass: $taxClass
       meta: $meta
-      custom_field: $custom_field
-      attribute: $attribute
-      variant: $variant
-      combinations: $combinations
+      specifications: $specifications
     ) {
-      ...ProductTile
+      message
+      success
     }
   }
-  ${PRODUCT_TILE_DATA}
 `;
 
 const UPDATE_PRODUCT = gql`
@@ -284,10 +251,8 @@ const UPDATE_PRODUCT = gql`
     $shipping: customObject
     $taxClass: String
     $meta: customObject
+    $specifications: [productSpecificationInput]
     $custom_field: [customObject]
-    $attribute: [customObject]
-    $variant: customArray
-    $combinations: [customObject]
   ) {
     updateProduct(
       id: $_id
@@ -310,9 +275,7 @@ const UPDATE_PRODUCT = gql`
       taxClass: $taxClass
       meta: $meta
       custom_field: $custom_field
-      attribute: $attribute
-      variant: $variant
-      combinations: $combinations
+      specifications: $specifications
     ) {
       message
       success
@@ -340,4 +303,5 @@ export {
   ADD_PRODUCT,
   UPDATE_PRODUCT,
   DELETE_PRODUCT,
+  GET_URL,
 };

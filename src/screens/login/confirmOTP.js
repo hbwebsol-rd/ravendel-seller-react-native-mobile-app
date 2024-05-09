@@ -32,6 +32,7 @@ const ConfirmScreen = ({navigation, route}) => {
     if (otpInput === null || otpInput.length < 4) {
       showAletMessage('Please enter OTP code');
     } else {
+      console.log(loginDetail, 'login');
       axios
         .post(`${BASE_URL}apis/users/login`, loginDetail)
         .then(async response => {
@@ -46,7 +47,7 @@ const ConfirmScreen = ({navigation, route}) => {
           }
         })
         .catch(error => {
-          console.log(error, 'rrrs', `${BASE_URL}api/users/login`);
+          console.log(error, 'rrrs', `${BASE_URL}apis/users/login`);
           if (
             error.response &&
             error.response.status &&

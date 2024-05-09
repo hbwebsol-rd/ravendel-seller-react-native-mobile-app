@@ -15,7 +15,7 @@ import {useMutation} from '@apollo/client';
 import AppLoader from '../../components/loader';
 import {GET_CATEGORIES, DELETE_CATEGORY} from '../../../queries/productQueries';
 import {useIsFocused} from '@react-navigation/native';
-import {Alert, View} from 'react-native';
+import {Alert, ScrollView, View} from 'react-native';
 import {unflatten} from '../../../utils/helper';
 import MainContainer from '../../components/mainContainer';
 import {GraphqlError, GraphqlSuccess} from '../../components/garphqlMessages';
@@ -142,7 +142,7 @@ const AllCategoriesView = ({navigation}) => {
                     {
                       text: 'OK',
                       onPress: () => {
-                        // deleteCat({variables: {id: category.id}}),
+                        // deleteCat({variables: {id: category.id}});
                       },
                     },
                   ],
@@ -160,7 +160,9 @@ const AllCategoriesView = ({navigation}) => {
   return (
     <>
       {deleteLoading ? <AppLoader /> : null}
-      {categoriesListing(allcategories)}
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {categoriesListing(allcategories)}
+      </ScrollView>
     </>
   );
 };

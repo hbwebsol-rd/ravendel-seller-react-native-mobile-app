@@ -14,7 +14,7 @@ const AllCustomerView = ({navigation}) => {
   const isFocused = useIsFocused();
 
   const {loading, error, data, refetch} = useQuery(GET_CUSTOMERS);
-
+  console.log(error, 'a');
   React.useEffect(() => {
     if (isFocused) {
       refetch();

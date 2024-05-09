@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Input} from "@rneui/themed";
+import {Input} from '@rneui/themed';
 import Colors from '../../../utils/color';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {
@@ -11,7 +11,7 @@ import {
 } from '../components/accordion-styles';
 
 const InventoryComponents = ({sku, quantity, onInventoryInputChange}) => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
 
   const onAccordionChange = () => {
     setOpen(!open);
@@ -37,14 +37,14 @@ const InventoryComponents = ({sku, quantity, onInventoryInputChange}) => {
         <Input
           label="SKU"
           value={sku || ''}
-          onChangeText={(value) => onInventoryInputChange('sku', value)}
+          onChangeText={value => onInventoryInputChange('sku', value)}
         />
         <Input
           label="Quantity"
           keyboardType="numeric"
           type="number"
           value={quantity || ''}
-          onChangeText={(value) => onInventoryInputChange('quantity', value)}
+          onChangeText={value => onInventoryInputChange('quantity', value)}
         />
       </AccordionBody>
     </AccordionWrapper>

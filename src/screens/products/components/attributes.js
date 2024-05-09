@@ -1,13 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {Text, View, TouchableOpacity, Image, Alert} from 'react-native';
 import {Picker} from '@react-native-picker/picker';
-import {
-  Button,
-  CheckBox,
-  Input,
-  BottomSheet,
-  ListItem,
-} from "@rneui/themed";
+import {Button, CheckBox, Input, BottomSheet, ListItem} from '@rneui/themed';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Colors from '../../../utils/color';
 import {
@@ -17,7 +11,7 @@ import {
   deleteProductVariation,
 } from '../../../utils/helper';
 import Accordion from '../../components/accordion';
-import ImagePicker from 'react-native-image-picker';
+import * as ImagePicker from 'react-native-image-picker';
 import styled from 'styled-components';
 import AttrMulipleSelect from './attributes-multipleselect';
 import {
@@ -87,7 +81,7 @@ const Attributes = ({
               currentAttribute.attribute_list.push({
                 id: attr.id,
                 name: attr.name,
-                isVariant: variant.some((vr) => vr === attr.id),
+                isVariant: variant.some(vr => vr === attr.id),
                 selected_values: selected_values,
                 values: values,
               });
@@ -108,8 +102,8 @@ const Attributes = ({
         });
 
         if (currentAttribute.attribute_list.length > 0) {
-          data.map((item) => {
-            currentAttribute.attribute_list.map((attribute) => {
+          data.map(item => {
+            currentAttribute.attribute_list.map(attribute => {
               if (item.id === attribute.id) {
                 item.selected = true;
               }
@@ -134,7 +128,7 @@ const Attributes = ({
       ...currentVariants,
     });
     if (!editMode) {
-      data.map((item) => {
+      data.map(item => {
         item.selected = false;
       });
     }
@@ -163,7 +157,7 @@ const Attributes = ({
       }
     }
 
-    data.map((item) => {
+    data.map(item => {
       if (item.id === currentAttribute.id) {
         item.selected = true;
       }
@@ -195,18 +189,18 @@ const Attributes = ({
     createVariants();
   };
 
-  const deleteAttribute = (i) => {
+  const deleteAttribute = i => {
     currentAttribute.attribute_list.splice(i, 1);
     setcurrentAttribute({
       ...currentAttribute,
     });
-    data.map((item) => {
+    data.map(item => {
       item.selected = false;
     });
     createVariants();
   };
 
-  const variantDelete = async (i) => {
+  const variantDelete = async i => {
     if (currentVariants.combinations[i].hasOwnProperty('id')) {
       await deleteProductVariation(currentVariants.combinations[i].id);
     }
@@ -221,7 +215,7 @@ const Attributes = ({
     var variantItem = [];
     currentAttribute.attribute_list.forEach((attr, index) => {
       if (attr.selected_values.length) {
-        attr.selected_values.forEach((val) => {
+        attr.selected_values.forEach(val => {
           attributeItem.push({
             attribute_id: attr.id,
             attribute_value_id: val.value,
@@ -263,7 +257,7 @@ const Attributes = ({
       countMatch = [];
       currentVariants.combinations.forEach((prevComb, j) => {
         countMatch[j] = 0;
-        prevComb.combination.forEach((v) => {
+        prevComb.combination.forEach(v => {
           if (~comb.indexOf(v)) {
             countMatch[j] = countMatch[j] + 1;
           }
@@ -330,7 +324,7 @@ const Attributes = ({
   };
 
   /* =============================Upload Variant Image Function============================= */
-  const UploadImage = (response) => {
+  const UploadImage = response => {
     if (response.didCancel) {
       // console.log('User cancelled image picker');
     } else if (response.error) {
@@ -349,7 +343,7 @@ const Attributes = ({
     {
       title: 'Take Photo',
       onPress: () => {
-        ImagePicker.launchCamera(UploadImageOptions, (response) => {
+        ImagePicker.launchCamera(UploadImageOptions, response => {
           UploadImage(response);
         });
       },
@@ -357,7 +351,7 @@ const Attributes = ({
     {
       title: 'Choose from library',
       onPress: () => {
-        ImagePicker.launchImageLibrary(UploadImageOptions, (response) => {
+        ImagePicker.launchImageLibrary(UploadImageOptions, response => {
           UploadImage(response);
         });
       },
@@ -383,9 +377,9 @@ const Attributes = ({
     }
   }, [currentVariants.combinations]);
 
-  const checkCombinationToggle = (id) => {
+  const checkCombinationToggle = id => {
     if (toggleCombinationState.length > 0) {
-      var item = toggleCombinationState.filter((comb) => comb.id === id);
+      var item = toggleCombinationState.filter(comb => comb.id === id);
       if (item.length > 0) {
         return item[0].value;
       } else {
@@ -395,8 +389,8 @@ const Attributes = ({
       return false;
     }
   };
-  const changeCombinationToggleState = (id) => {
-    toggleCombinationState.map((comb) => {
+  const changeCombinationToggleState = id => {
+    toggleCombinationState.map(comb => {
       if (comb.id === id) {
         comb.value = !comb.value;
       }
@@ -410,7 +404,7 @@ const Attributes = ({
         <Picker
           selectedValue={currentAttribute.id}
           onValueChange={(itemValue, itemIndex) => {
-            var item = data.filter((d) => d.id === itemValue);
+            var item = data.filter(d => d.id === itemValue);
             if (item.length > 0 && item[0].selected) {
               Alert.alert('Ooops!!', `${item[0].name} is already selected`, [
                 {
@@ -489,7 +483,7 @@ const Attributes = ({
               <CheckBox
                 title="Variation"
                 checked={attribute.isVariant}
-                onPress={(e) => {
+                onPress={e => {
                   attribute.isVariant = !attribute.isVariant;
                   setcurrentAttribute({
                     ...currentAttribute,
@@ -504,7 +498,7 @@ const Attributes = ({
               <AttrMulipleSelect
                 items={attribute.values}
                 selected={attribute.selected_values}
-                onItemChange={(items) => {
+                onItemChange={items => {
                   changeSelectedValue(items, index);
                 }}
                 label={`Select ${attribute.name}`}
@@ -568,23 +562,21 @@ const Attributes = ({
                     type="number"
                     label="Price"
                     value={variant.price.toString()}
-                    onChangeText={(value) =>
-                      variantChange('price', value, index)
-                    }
+                    onChangeText={value => variantChange('price', value, index)}
                   />
                   <Input
                     keyboardType="numeric"
                     type="number"
                     label="Quantity"
                     value={variant.quantity.toString()}
-                    onChangeText={(value) =>
+                    onChangeText={value =>
                       variantChange('quantity', value, index)
                     }
                   />
                   <Input
                     label="SKU"
                     value={variant.sku}
-                    onChangeText={(value) => variantChange('sku', value, index)}
+                    onChangeText={value => variantChange('sku', value, index)}
                   />
                   {!isEmpty(variant.image) &&
                   !isEmpty(variant.image.original) ? (

@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {Picker} from '@react-native-picker/picker';
 import {isEmpty} from '../../../utils/helper';
-import {Input} from "@rneui/themed";
+import {Input} from '@rneui/themed';
 import Colors from '../../../utils/color';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {
@@ -19,7 +19,7 @@ const ShippingComponent = ({
   onShippingInput,
   shipping,
 }) => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
 
   const onAccordionChange = () => {
     setOpen(!open);
@@ -44,9 +44,9 @@ const ShippingComponent = ({
         }}>
         <ShippingWrapper>
           {!isEmpty(shippingState) ? (
-            !shippingState.global.is_global ? (
+            !shippingState.data.global.is_global ? (
               <Picker
-                selectedValue={shipping.shipping_class}
+                selectedValue={shipping.shippingClass}
                 onValueChange={(itemValue, itemIndex) => {
                   onShipppingChange(itemValue);
                 }}>
@@ -55,7 +55,7 @@ const ShippingComponent = ({
                   label={'Select Tax'}
                   color="rgba(0,0,0,0.5)"
                 />
-                {shippingState.shipping_class.map((shipping_c, index) => {
+                {shippingState.data.shippingClass.map((shipping_c, index) => {
                   return (
                     <Picker.Item
                       key={index}
@@ -78,28 +78,28 @@ const ShippingComponent = ({
             type="number"
             label="Height"
             value={shipping.height.toString()}
-            onChangeText={(value) => onShippingInput('height', parseInt(value))}
+            onChangeText={value => onShippingInput('height', parseInt(value))}
           />
           <Input
             keyboardType="numeric"
             type="number"
             label="Width"
             value={shipping.width.toString()}
-            onChangeText={(value) => onShippingInput('width', parseInt(value))}
+            onChangeText={value => onShippingInput('width', parseInt(value))}
           />
           <Input
             keyboardType="numeric"
             type="number"
             label="Depth"
             value={shipping.depth.toString()}
-            onChangeText={(value) => onShippingInput('depth', parseInt(value))}
+            onChangeText={value => onShippingInput('depth', parseInt(value))}
           />
           <Input
             keyboardType="numeric"
             type="number"
             label="Weigth"
             value={shipping.weight.toString()}
-            onChangeText={(value) => onShippingInput('weight', parseInt(value))}
+            onChangeText={value => onShippingInput('weight', parseInt(value))}
           />
         </ShippingWrapper>
       </AccordionBody>

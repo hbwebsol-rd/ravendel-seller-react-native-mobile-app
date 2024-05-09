@@ -41,7 +41,12 @@ const SingleCustomerView = ({singleCustomerDetail, navigation}) => {
           </CustomerProfileRow>
           <CustomerProfileRow>
             <CustomerProfileLable>Email</CustomerProfileLable>
-            <CustomerProfileValue>{singleCustomer.email}</CustomerProfileValue>
+            <CustomerProfileValue
+              style={{width: '65%'}}
+              // ellipsizeMode="head"
+              numberOfLines={1}>
+              {singleCustomer.email}
+            </CustomerProfileValue>
           </CustomerProfileRow>
           <CustomerProfileRow>
             <CustomerProfileLable>Company</CustomerProfileLable>

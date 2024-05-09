@@ -7,16 +7,10 @@ import {
   AddFormSectionTitle,
   AddFormSections,
 } from './styles';
-import {
-  Input,
-  CheckBox,
-  Button,
-  BottomSheet,
-  ListItem,
-} from "@rneui/themed";
+import {Input, CheckBox, Button, BottomSheet, ListItem} from '@rneui/themed';
 import BottomDivider from '../../components/bottom-divider';
 import CustomPicker from '../../components/custom-picker';
-import ImagePicker from 'react-native-image-picker';
+import * as ImagePicker from 'react-native-image-picker';
 import Colors from '../../../utils/color';
 import Editor from '../components/editor';
 import GalleryImage from '../components/gallery-image';
@@ -29,6 +23,7 @@ import ShippingComponent from '../components/shipping';
 import MetaInfoComponents from '../components/meta-info';
 import InventoryComponents from '../components/inventory';
 import URLComponents from '../../components/urlComponents';
+import Specification from '../components/specification';
 
 /* =============================Upload Featured Image and Gallery Options============================= */
 const options = {
@@ -59,13 +54,15 @@ const AddProductView = ({
   allTaxes,
   allShipppings,
   onAttrAndVariantParent,
+  groups,
+  setGroups,
 }) => {
   /* =============================States============================= */
   const [uploadModal, setUploadModal] = useState(false);
   const [uploadImageOf, setUploadImageOf] = useState('');
 
   /* =============================Upload Featured Image and Gallery Image Function============================= */
-  const UploadImage = (response) => {
+  const UploadImage = response => {
     if (response.didCancel) {
       // console.log('User cancelled image picker');
     } else if (response.error) {
@@ -73,14 +70,15 @@ const AddProductView = ({
     } else if (response.customButton) {
       console.log('User tapped custom button: ', response.customButton);
     } else {
-      const source = {uri: 'data:image/jpeg;base64,' + response.data};
-      console.log('image source', source);
+      console.log(response, ' img res');
+      // const source = {uri: 'data:image/jpeg;base64,' + response.data};
+      // console.log('image source', source);
       const image = {
-        uri: response.uri,
-        type: response.type,
-        name:
-          response.fileName ||
-          response.uri.substr(response.uri.lastIndexOf('/') + 1),
+        uri: response.assets[0].uri,
+        type: response.assets[0].type,
+        name: response.assets[0].uri.substr(
+          response.assets[0].uri.lastIndexOf('/') + 1,
+        ),
       };
       console.log('response.uri', response.uri);
       console.log('image', image);
@@ -101,7 +99,7 @@ const AddProductView = ({
     {
       title: 'Take Photo',
       onPress: () => {
-        ImagePicker.launchCamera(options, (response) => {
+        ImagePicker.launchCamera(options, response => {
           UploadImage(response);
         });
       },
@@ -109,7 +107,7 @@ const AddProductView = ({
     {
       title: 'Choose from library',
       onPress: () => {
-        ImagePicker.launchImageLibrary(options, (response) => {
+        ImagePicker.launchImageLibrary(options, response => {
           UploadImage(response);
         });
       },
@@ -164,8 +162,8 @@ const AddProductView = ({
           <Input
             label="Name"
             value={name}
-            onChangeText={(value) => inputChange('name', value)}
-            onEndEditing={(event) => {
+            onChangeText={value => inputChange('name', value)}
+            onEndEditing={event => {
               let value =
                 !!event.nativeEvent && !!event.nativeEvent.text
                   ? event.nativeEvent.text
@@ -178,14 +176,14 @@ const AddProductView = ({
             <URLComponents
               url={url}
               updateOf="Product"
-              changePermalink={(value) => inputChange('url', value)}
-              updatePermalink={(value) => inputChange('url', value)}
+              changePermalink={value => inputChange('url', value)}
+              updatePermalink={value => inputChange('url', value)}
             />
           ) : null}
 
           <Editor
             data={description}
-            onEditorChange={(value) => inputChange('description', value)}
+            onEditorChange={value => inputChange('description', value)}
           />
         </AddFormSections>
 
@@ -207,7 +205,7 @@ const AddProductView = ({
           <AddFormSectionTitle>Gallery Image</AddFormSectionTitle>
           <GalleryImage
             images={galleryImages}
-            removeImage={(img) => removeGalleryImage(img)}
+            removeImage={img => removeGalleryImage(img)}
             addImage={() => {
               setUploadModal(true);
               setUploadImageOf('gallery_image');
@@ -223,7 +221,7 @@ const AddProductView = ({
             type="number"
             label="Price"
             value={pricing.price.toString()}
-            onChangeText={(value) => {
+            onChangeText={value => {
               if (value === '') {
                 objectInputChange('pricing', 'price', '');
               } else {
@@ -236,7 +234,7 @@ const AddProductView = ({
             type="number"
             label="Sale Price"
             value={pricing.sellprice.toString()}
-            onChangeText={(value) => {
+            onChangeText={value => {
               if (value === '') {
                 objectInputChange('pricing', 'sellprice', '');
               } else {
@@ -249,7 +247,7 @@ const AddProductView = ({
         <CategoriesSelections
           data={categories}
           selectedItems={categoryId}
-          onCategoryChange={(items) => inputChange('categoryId', items)}
+          onCategoryChange={items => inputChange('categoryId', items)}
         />
 
         {/* =================================Featured Product============================== */}
@@ -264,16 +262,29 @@ const AddProductView = ({
         {/* =================================Attributes============================== */}
         <AddFormSections>
           <AddFormSectionTitle>Attributes</AddFormSectionTitle>
-          <Attributes
+          {/* <Attributes
             data={attributes}
             attribute={attribute}
             variant={variant}
-            onCombinationUpdate={(combinations) =>
+            onCombinationUpdate={combinations =>
               inputChange('combinations', combinations)
             }
             onAttrAndVariant={(variantItem, attributeItem) => {
               onAttrAndVariantParent(variantItem, attributeItem);
             }}
+          /> */}
+          <Specification
+            data={attributes}
+            attribute={attribute}
+            variant={variant}
+            onCombinationUpdate={combinations =>
+              inputChange('combinations', combinations)
+            }
+            onAttrAndVariant={(variantItem, attributeItem) => {
+              onAttrAndVariantParent(variantItem, attributeItem);
+            }}
+            groups={groups}
+            setGroups={setGroups}
           />
         </AddFormSections>
 
@@ -282,7 +293,7 @@ const AddProductView = ({
           <TaxComponent
             taxState={allTaxes}
             tax_class={tax_class}
-            onTaxChange={(tax_class) => inputChange('tax_class', tax_class)}
+            onTaxChange={tax_class => inputChange('tax_class', tax_class)}
           />
         </Accordion>
 
@@ -291,8 +302,8 @@ const AddProductView = ({
           <ShippingComponent
             shippingState={allShipppings}
             shipping={shipping}
-            onShipppingChange={(value) =>
-              objectInputChange('shipping', 'shipping_class', value)
+            onShipppingChange={value =>
+              objectInputChange('shipping', 'shippingClass', value)
             }
             onShippingInput={(name, value) =>
               objectInputChange('shipping', name, value)
@@ -306,10 +317,10 @@ const AddProductView = ({
             iosDropdown
             pickerKey="name"
             pickerVal="id"
-            androidPickerData={brands}
-            iosPickerData={brands}
+            androidPickerData={brands.data}
+            iosPickerData={brands.data}
             selectedValue={brand}
-            pickerValChange={(val) => inputChange('brand', val)}
+            pickerValChange={val => inputChange('brand', val)}
             placeholder="Please Select"
             label="Brand"
           />

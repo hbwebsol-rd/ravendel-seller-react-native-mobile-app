@@ -2,17 +2,23 @@ import gql from 'graphql-tag';
 const GET_SHIPPING = gql`
   {
     shipping {
-      id
-      global
-      shipping_class
-      date
-      updated
+      data {
+        id
+        global
+        shippingClass
+        date
+        updated
+      }
+      message {
+        message
+        success
+      }
     }
   }
 `;
 
 const UPDATE_GLOBALSHIPPING = gql`
-  mutation($global: customObject) {
+  mutation ($global: customObject) {
     updateGlobalShipping(global: $global) {
       id
       global
@@ -24,7 +30,7 @@ const UPDATE_GLOBALSHIPPING = gql`
 `;
 
 const ADD_SHIPPINGCLASS = gql`
-  mutation($shipping_class: customObject) {
+  mutation ($shipping_class: customObject) {
     addShippingClass(shipping_class: $shipping_class) {
       id
       global
@@ -36,7 +42,7 @@ const ADD_SHIPPINGCLASS = gql`
 `;
 
 const UPDATE_SHIPPINGCLASS = gql`
-  mutation($shipping_class: customObject) {
+  mutation ($shipping_class: customObject) {
     updateShippingClass(shipping_class: $shipping_class) {
       id
       global
@@ -48,7 +54,7 @@ const UPDATE_SHIPPINGCLASS = gql`
 `;
 
 const DELETE_SHIPPINGCLASS = gql`
-  mutation($_id: String) {
+  mutation ($_id: String) {
     deleteShippingClass(_id: $_id) {
       id
       global

@@ -1,13 +1,16 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {KeyboardAvoidingView, ScrollView} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import {Input, Button} from "@rneui/themed";
+import {Input, Button} from '@rneui/themed';
 import {
   LoginWrapper,
   LoginTitle,
   ForgotPasswordBtn,
   ForgotPasswordText,
 } from './styles';
+import {ForgotEmailValidation, LoginValidation} from '../../validation';
+import {useFormik} from 'formik';
+import {Text} from '@rneui/base';
 
 const LoginForm = ({
   loginDetail,
@@ -16,6 +19,36 @@ const LoginForm = ({
   onSubmit,
   navigation,
 }) => {
+  const [secure, setSecure] = useState(true);
+
+  const handleSecure = () => {
+    setSecure(!secure);
+  };
+  const formik = useFormik({
+    enableReinitialize: true,
+    initialValues: {
+      email: '',
+      password: '',
+    },
+    validationSchema: LoginValidation,
+    onSubmit: (values, {setSubmitting, resetForm}) => {
+      setSubmitting(false);
+      sendValues(values);
+      resetForm({values: ''});
+    },
+  });
+
+  const sendValues = val => {
+    // console.log(JSON.stringify(val));
+    const loginDetail = {
+      email: val.email,
+      password: val.password,
+    };
+    navigation.navigate('Confirm', {
+      loginDetail: loginDetail,
+    });
+  };
+
   return (
     <LoginWrapper>
       <KeyboardAvoidingView behavior="padding" enabled>
@@ -23,25 +56,54 @@ const LoginForm = ({
           <LoginTitle>Login</LoginTitle>
           <Input
             label="Email"
-            value={loginDetail.email}
+            value={formik.values.email}
             leftIcon={<Icon name="user" size={24} color="black" />}
-            onChangeText={(value) => handleChange('email', value)}
+            onChangeText={formik.handleChange('email')}
           />
-
+          {formik.errors.email && formik.touched.email ? (
+            <Text style={{color: 'red', fontSize: 12}}>
+              {formik.errors.email}
+            </Text>
+          ) : null}
           <Input
             label="Password"
-            value={loginDetail.password}
-            secureTextEntry={true}
+            value={formik.values.password}
+            secureTextEntry={secure}
             leftIcon={<Icon name="lock" size={24} color="black" />}
-            onChangeText={(value) => handleChange('password', value)}
+            onChangeText={formik.handleChange('password')}
+            rightIcon={
+              secure ? (
+                <Icon
+                  onPress={() => handleSecure()}
+                  name="eye"
+                  size={24}
+                  color="black"
+                />
+              ) : (
+                <Icon
+                  onPress={() => handleSecure()}
+                  name="eye-slash"
+                  size={24}
+                  color="black"
+                />
+              )
+            }
+          />
+          {formik.errors.password && formik.touched.password ? (
+            <Text style={{color: 'red', fontSize: 12}}>
+              {formik.errors.password}
+            </Text>
+          ) : null}
+          <Button
+            title="LOGIN"
+            loading={loading}
+            onPress={formik.handleSubmit}
           />
 
-          <Button title="LOGIN" loading={loading} onPress={onSubmit} />
-
-          <ForgotPasswordBtn
+          {/* <ForgotPasswordBtn
             onPress={() => navigation.navigate('ForgotPassword')}>
             <ForgotPasswordText>Forgot Password?</ForgotPasswordText>
-          </ForgotPasswordBtn>
+          </ForgotPasswordBtn> */}
         </ScrollView>
       </KeyboardAvoidingView>
     </LoginWrapper>

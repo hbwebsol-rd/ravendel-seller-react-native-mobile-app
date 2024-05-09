@@ -4,7 +4,6 @@ import AppHeader from '../../components/header';
 
 const EditCategoryScreen = ({navigation, route}) => {
   const [singleCategoryDetail, setSingleCategoryDetail] = useState({});
-
   useEffect(() => {
     if (route.params && route.params.singleCategory) {
       setSingleCategoryDetail(route.params.singleCategory);

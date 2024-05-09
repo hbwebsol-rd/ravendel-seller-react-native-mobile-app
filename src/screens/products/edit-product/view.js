@@ -7,17 +7,11 @@ import {
   AddFormSectionTitle,
   AddFormSections,
 } from '../add-product/styles';
-import {
-  Input,
-  CheckBox,
-  Button,
-  BottomSheet,
-  ListItem,
-} from "@rneui/themed";
+import {Input, CheckBox, Button, BottomSheet, ListItem} from '@rneui/themed';
 import {isEmpty} from '../../../utils/helper';
 import BottomDivider from '../../components/bottom-divider';
 import CustomPicker from '../../components/custom-picker';
-import ImagePicker from 'react-native-image-picker';
+import * as ImagePicker from 'react-native-image-picker';
 import Colors from '../../../utils/color';
 import Editor from '../components/editor';
 import GalleryImage from '../components/gallery-image';
@@ -31,6 +25,7 @@ import TaxComponent from '../components/tax';
 import ShippingComponent from '../components/shipping';
 import MetaInfoComponents from '../components/meta-info';
 import InventoryComponents from '../components/inventory';
+import Specification from '../components/specification';
 
 /* =============================Upload Featured Image and Gallery Options============================= */
 const options = {
@@ -60,11 +55,12 @@ const EditProductView = ({
   allTaxes,
   allShipppings,
   onAttrAndVariantParent,
+  groups,
+  setGroups,
 }) => {
   /* =============================States============================= */
   const [uploadModal, setUploadModal] = useState(false);
   const [uploadImageOf, setUploadImageOf] = useState('');
-
   const {
     name,
     description,
@@ -86,7 +82,7 @@ const EditProductView = ({
   } = editProductDetail;
 
   /* =============================Upload Featured Image and Gallery Image Function============================= */
-  const UploadImage = (response) => {
+  const UploadImage = response => {
     if (response.didCancel) {
       // console.log('User cancelled image picker');
     } else if (response.error) {
@@ -111,7 +107,7 @@ const EditProductView = ({
     {
       title: 'Take Photo',
       onPress: () => {
-        ImagePicker.launchCamera(options, (response) => {
+        ImagePicker.launchCamera(options, response => {
           UploadImage(response);
         });
       },
@@ -119,7 +115,7 @@ const EditProductView = ({
     {
       title: 'Choose from library',
       onPress: () => {
-        ImagePicker.launchImageLibrary(options, (response) => {
+        ImagePicker.launchImageLibrary(options, response => {
           UploadImage(response);
         });
       },
@@ -155,19 +151,19 @@ const EditProductView = ({
           <Input
             label="Name"
             value={name}
-            onChangeText={(value) => inputChange('name', value)}
+            onChangeText={value => inputChange('name', value)}
           />
 
           <URLComponents
             url={url}
             updateOf="Product"
-            changePermalink={(value) => inputChange('url', value)}
-            updatePermalink={(value) => inputChange('url', value)}
+            changePermalink={value => inputChange('url', value)}
+            updatePermalink={value => inputChange('url', value)}
           />
 
           <Editor
             data={description}
-            onEditorChange={(value) => inputChange('description', value)}
+            onEditorChange={value => inputChange('description', value)}
           />
         </AddFormSections>
 
@@ -189,7 +185,7 @@ const EditProductView = ({
           <AddFormSectionTitle>Gallery Image</AddFormSectionTitle>
           <GalleryImage
             images={galleryImages}
-            removeImage={(img) => onGalleryImagesRemove(img)}
+            removeImage={img => onGalleryImagesRemove(img)}
             addImage={() => {
               setUploadModal(true);
               setUploadImageOf('gallery_image');
@@ -200,13 +196,12 @@ const EditProductView = ({
         {/* =================================Product Price============================== */}
         <AddFormSections>
           <AddFormSectionTitle>Pricing</AddFormSectionTitle>
-
           <Input
             keyboardType="numeric"
             type="number"
             label="Price"
             value={pricing.price.toString()}
-            onChangeText={(value) =>
+            onChangeText={value =>
               objectInputChange('pricing', 'price', parseInt(value))
             }
           />
@@ -216,7 +211,7 @@ const EditProductView = ({
             type="number"
             label="Sale Price"
             value={pricing.sellprice.toString()}
-            onChangeText={(value) =>
+            onChangeText={value =>
               objectInputChange('pricing', 'sellprice', parseInt(value))
             }
           />
@@ -228,7 +223,7 @@ const EditProductView = ({
             <CategoriesSelections
               data={allCategories}
               selectedItems={categoryId}
-              onCategoryChange={(items) => inputChange('categoryId', items)}
+              onCategoryChange={items => inputChange('categoryId', items)}
             />
           </SafeAreaView>
         ) : null}
@@ -246,19 +241,34 @@ const EditProductView = ({
         {allAttributes.length > 0 ? (
           <AddFormSections>
             <AddFormSectionTitle>Attributes</AddFormSectionTitle>
-            <Attributes
+            {/* <Attributes
               data={allAttributes}
               attribute={attribute}
               variant={variant}
               variation_master={variation_master}
               editMode
-              onCombinationUpdate={(combinations) => {
+              onCombinationUpdate={combinations => {
                 inputChange('combinations', combinations);
               }}
               onAttrAndVariant={(variantItem, attributeItem) => {
                 onAttrAndVariantParent(variantItem, attributeItem);
               }}
-            />
+            /> */}
+            <AddFormSections>
+              <Specification
+                data={allAttributes}
+                attribute={attribute}
+                variant={variant}
+                // onCombinationUpdate={combinations =>
+                //   inputChange('combinations', combinations)
+                // }
+                // onAttrAndVariant={(variantItem, attributeItem) => {
+                //   onAttrAndVariantParent(variantItem, attributeItem);
+                // }}
+                groups={groups}
+                setGroups={setGroups}
+              />
+            </AddFormSections>
           </AddFormSections>
         ) : null}
 
@@ -267,17 +277,16 @@ const EditProductView = ({
           <TaxComponent
             taxState={allTaxes}
             tax_class={tax_class}
-            onTaxChange={(tax_class) => inputChange('tax_class', tax_class)}
+            onTaxChange={tax_class => inputChange('tax_class', tax_class)}
           />
         </Accordion>
-
         {/* =================================Product Shipping============================== */}
-        {!isEmpty(shipping) && !product_type.virtual ? (
+        {!isEmpty(shipping) && !product_type?.virtual ? (
           <ShippingComponent
             shippingState={allShipppings}
             shipping={shipping}
-            onShipppingChange={(value) =>
-              objectInputChange('shipping', 'shipping_class', value)
+            onShipppingChange={value =>
+              objectInputChange('shipping', 'shippingClass', value)
             }
             onShippingInput={(name, value) =>
               objectInputChange('shipping', name, value)
@@ -295,7 +304,7 @@ const EditProductView = ({
               selectedValue={brand && brand.id ? brand.id : ''}
               androidPickerData={allBrands}
               iosPickerData={allBrands}
-              pickerValChange={(val) => inputChange('brand', val)}
+              pickerValChange={val => inputChange('brand', val)}
               placeholder="Please Select"
               label="Brand"
             />
@@ -307,24 +316,24 @@ const EditProductView = ({
           <View style={{flexDirection: 'row'}}>
             <CheckBox
               title="Virtual"
-              checked={product_type.virtual}
+              checked={product_type?.virtual}
               onPress={() =>
                 objectInputChange(
                   'product_type',
                   'virtual',
-                  !product_type.virtual,
+                  !product_type?.virtual,
                 )
               }
             />
 
             <CheckBox
               title="Downloadable"
-              checked={product_type.downloadable}
+              checked={product_type?.downloadable}
               onPress={() =>
                 objectInputChange(
                   'product_type',
                   'downloadable',
-                  !product_type.downloadable,
+                  !product_type?.downloadable,
                 )
               }
             />

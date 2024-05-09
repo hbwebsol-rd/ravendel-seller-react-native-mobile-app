@@ -1,22 +1,31 @@
-import React, { useEffect } from 'react';
+import React, {useEffect} from 'react';
 import AppHeader from '../components/header';
-import { ScrollView } from 'react-native';
+import {ScrollView} from 'react-native';
 import {
   DashbaordCardWrapper,
   DashbaordCard,
   DashbaordCardValue,
   DashbaordCardTitle,
 } from './styles';
-import { useDispatch, useSelector } from 'react-redux';
-import { getDashboardDataAction } from '../../store/action';
+import {useDispatch, useSelector} from 'react-redux';
+import {getDashboardDataAction} from '../../store/action';
+import {useQuery} from '@apollo/client';
+import {GET_DASHBOARDDATA} from '../../queries/userQueries';
+import AppLoader from '../components/loader';
 
-const DashboardScreen = ({ navigation }) => {
+const DashboardScreen = ({navigation}) => {
   const dispatch = useDispatch();
-  const { dashBoardData } = useSelector(state=>state.dashboard)
+  // const {dashBoardData} = useSelector(state => state.dashboard);
+  const {loading, error, data} = useQuery(GET_DASHBOARDDATA);
+  console.log(loading, JSON.stringify(data?.dashboardData?.productCount));
+  // useEffect(() => {
+  //   dispatch(getDashboardDataAction());
+  // }, []);
+  // console.log(JSON.stringify(dashBoardData), 'dbb data');
+  if (loading) {
+    return <AppLoader />;
+  }
 
-  useEffect(() => {
-    dispatch(getDashboardDataAction())
-  }, [])
   return (
     <>
       <AppHeader title="Dashboard" navigation={navigation} />
@@ -32,11 +41,15 @@ const DashboardScreen = ({ navigation }) => {
           </DashbaordCard>
           <DashbaordCard onPress={() => navigation.navigate('AllProducts')}>
             <DashbaordCardTitle>Total Products</DashbaordCardTitle>
-            <DashbaordCardValue>{dashBoardData.product_count}</DashbaordCardValue>
+            <DashbaordCardValue>
+              {data?.dashboardData?.productCount}
+            </DashbaordCardValue>
           </DashbaordCard>
           <DashbaordCard onPress={() => navigation.navigate('AllCustomers')}>
             <DashbaordCardTitle>Total Customers</DashbaordCardTitle>
-            <DashbaordCardValue>{dashBoardData.customer_count}</DashbaordCardValue>
+            <DashbaordCardValue>
+              {data?.dashboardData?.customerCount}
+            </DashbaordCardValue>
           </DashbaordCard>
           <DashbaordCard
             onPress={() =>

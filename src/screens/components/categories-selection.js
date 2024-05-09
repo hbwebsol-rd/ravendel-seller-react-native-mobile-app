@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 import {
   View,
   StyleSheet,
@@ -6,47 +6,46 @@ import {
   Text,
   TouchableOpacity,
 } from 'react-native';
-import {CheckBox, Overlay, Button} from "@rneui/themed";
+import {CheckBox, Overlay, Button} from '@rneui/themed';
 import Accordion from './accordion';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Colors from '../../utils/color';
 
 const CategoriesSelections = ({data, selectedItems, onCategoryChange}) => {
-  const [selected, setSelected] = useState([]);
+  const [selected, setSelected] = useState(selectedItems);
   const [visible, setVisible] = useState(false);
 
-  useEffect(() => {
+  useMemo(() => {
     setSelected(selectedItems);
-  }, []);
+  }, [selectedItems]);
 
-  const categoriesListing = (categories) => {
+  const categoriesListing = categories => {
     return categories.map((category, i) =>
       category.children && category.children.length > 0 ? (
-        <Accordion 
+        <Accordion
           title={
             <CheckBox
               title={category.name}
-              checked={selected.some((e) => e.id === category.id)}
+              checked={selected.some(e => e.id === category.id)}
               onPress={() => {
                 onCategoryHandle(category);
               }}
               containerStyle={{
-                  backgroundColor: 'transparent',
-                  borderColor : 'transparent'
+                backgroundColor: 'transparent',
+                borderColor: 'transparent',
               }}
             />
           }
           key={i}
           dense
-          withCheckbox
-        >
+          withCheckbox>
           {categoriesListing(category.children)}
         </Accordion>
       ) : (
         <View key={i}>
           <CheckBox
             title={category.name}
-            checked={selected.some((e) => e.id === category.id)}
+            checked={selected.some(e => e.id === category.id)}
             onPress={() => {
               onCategoryHandle(category);
             }}
@@ -56,10 +55,10 @@ const CategoriesSelections = ({data, selectedItems, onCategoryChange}) => {
     );
   };
 
-  const onCategoryHandle = (category) => {
-    var hasItem = selected.some((item) => item.id === category.id);
+  const onCategoryHandle = category => {
+    var hasItem = selected.some(item => item.id === category.id);
     if (hasItem) {
-      var items = selected.filter((item) => item.id !== category.id);
+      var items = selected.filter(item => item.id !== category.id);
       onCategoryChange(items);
       setSelected(items);
     } else {
@@ -72,7 +71,7 @@ const CategoriesSelections = ({data, selectedItems, onCategoryChange}) => {
     setVisible(!visible);
   };
 
-  const unSelectCat = (category) => {
+  const unSelectCat = category => {
     onCategoryHandle(category);
   };
 

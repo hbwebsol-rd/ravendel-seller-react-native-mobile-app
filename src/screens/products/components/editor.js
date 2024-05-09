@@ -1,4 +1,4 @@
-import React, {useRef, useState, useEffect} from 'react';
+import React, {useRef, useState, useEffect, useMemo} from 'react';
 import {actions, RichEditor, RichToolbar} from 'react-native-pell-rich-editor';
 import {
   KeyboardAvoidingView,
@@ -22,11 +22,16 @@ const Editor = ({data, onEditorChange}) => {
     );
   };
 
-  const handleChange = (html) => {
+  useEffect(() => {
+    console.log('running now', data);
+    EditorRef.current?.insertHTML(data);
+  }, []);
+
+  const handleChange = html => {
     onEditorChange(html);
   };
 
-  const handleHeightChange = (height) => {
+  const handleHeightChange = height => {
     setEditorHeight(height);
   };
   useEffect(() => {
@@ -39,9 +44,7 @@ const Editor = ({data, onEditorChange}) => {
 
   return (
     <SafeAreaView>
-      <KeyboardAvoidingView
-        behavior={'position'}
-        enabled>
+      <KeyboardAvoidingView behavior={'position'} enabled>
         <View style={{height: editorHeight}}>
           <RichEditor
             editorStyle={{backgroundColor: '#eee'}}

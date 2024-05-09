@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Input} from "@rneui/themed";
+import {Input} from '@rneui/themed';
 import Colors from '../../../utils/color';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {
@@ -11,7 +11,7 @@ import {
 } from '../components/accordion-styles';
 
 const MetaInfoComponents = ({meta, onMetaInputChange}) => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
 
   const onAccordionChange = () => {
     setOpen(!open);
@@ -37,17 +37,17 @@ const MetaInfoComponents = ({meta, onMetaInputChange}) => {
         <Input
           label="Meta Title"
           value={meta.title || ''}
-          onChangeText={(value) => onMetaInputChange('title', value)}
+          onChangeText={value => onMetaInputChange('title', value)}
         />
         <Input
           label="Meta Keyword"
           value={meta.keywords || ''}
-          onChangeText={(value) => onMetaInputChange('keywords', value)}
+          onChangeText={value => onMetaInputChange('keywords', value)}
         />
         <Input
           label="Meta Description"
           value={meta.description || ''}
-          onChangeText={(value) => onMetaInputChange('description', value)}
+          onChangeText={value => onMetaInputChange('description', value)}
           multiline
           numberOfLines={2}
         />

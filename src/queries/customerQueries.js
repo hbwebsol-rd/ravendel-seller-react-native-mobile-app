@@ -12,11 +12,14 @@ const GET_CUSTOMERS = gql`
         addressBook
         date
         updated
+        __typename
       }
       message {
         message
         success
+        __typename
       }
+      __typename
     }
   }
 `;

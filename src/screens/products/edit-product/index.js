@@ -27,7 +27,7 @@ const EditProductsScreen = ({route, navigation}) => {
   const Shippings = useQuery(GET_SHIPPING);
   const isFocused = useIsFocused();
   const [productDetail, setProductDetail] = useState({
-    id: '',
+    _id: '7676',
     name: '',
     description: '',
     url: '',
@@ -44,11 +44,11 @@ const EditProductsScreen = ({route, navigation}) => {
       keywords: '',
     },
     shipping: {
-      height: 0,
-      width: 0,
-      depth: 0,
-      weight: 0,
-      shipping_class: '',
+      height: '0',
+      width: '0',
+      depth: '0',
+      weight: '0',
+      shippingClass: '',
     },
     tax_class: '',
     feature_product: false,
@@ -70,17 +70,19 @@ const EditProductsScreen = ({route, navigation}) => {
   const {loading, error, data} = useQuery(GET_PRODUCT, {
     variables: {id: route.params.id},
   });
-  console.log(data, error, 'nddd');
   const [allCategories, setAllCategories] = useState([]);
   const [allBrands, setAllBrands] = useState([]);
   const [allAttributes, setAllAttributes] = useState([]);
   const [allTaxes, setAllTaxes] = useState({});
   const [allShipppings, setAllShippings] = useState({});
 
+  const [groups, setGroups] = useState([
+    {name: '', attributes: [{key: '', value: '', keyId: '', valueId: ''}]},
+  ]);
   useEffect(() => {
     if (Categories.data && Categories.data.productCategories) {
       var selectedCat = JSON.parse(
-        JSON.stringify(Categories.data.productCategories),
+        JSON.stringify(Categories.data.productCategories.data),
       );
       if (selectedCat && selectedCat.length) {
         setAllCategories(unflatten(selectedCat));
@@ -95,8 +97,8 @@ const EditProductsScreen = ({route, navigation}) => {
   }, [Brands.data]);
 
   useEffect(() => {
-    if (AttributesData.data && AttributesData.data.product_attributes) {
-      setAllAttributes(AttributesData.data.product_attributes);
+    if (AttributesData.data && AttributesData.data.productAttributes.data) {
+      setAllAttributes(AttributesData.data.productAttributes.data);
     }
   }, [AttributesData.data]);
 
@@ -114,19 +116,25 @@ const EditProductsScreen = ({route, navigation}) => {
 
   useEffect(() => {
     if (!isEmpty(allShipppings) && !isEmpty(allTaxes)) {
-      if (allShipppings.shipping_class.length && allTaxes.tax_class.length) {
+      if (
+        allShipppings?.data?.shippingClass.length &&
+        allTaxes.data.taxClass.length
+      ) {
         setProductDetail({
           ...productDetail,
           shipping: {
             ...productDetail.shipping,
-            shipping_class: allShipppings.shipping_class[0]._id,
+            shippingClass: allShipppings.data.global.is_global
+              ? allShipppings.data.global.shippingClass
+              : '',
           },
-          tax_class: allTaxes.tax_class[0]._id,
+          tax_class: allTaxes.data.global.is_global
+            ? allTaxes.data.global.taxClass
+            : '',
         });
       }
     }
   }, [allTaxes, allShipppings]);
-
   useEffect(() => {
     if (isFocused) {
       if (data && data.product) {
@@ -140,7 +148,44 @@ const EditProductsScreen = ({route, navigation}) => {
           );
           setGallery(allGalleryImage);
         }
-        setProductDetail(singleProduct);
+
+        const newData = {
+          _id: singleProduct._id,
+          name: singleProduct.name,
+          description: singleProduct.description,
+          url: singleProduct.url,
+          categoryId: singleProduct.categoryId,
+          brand: singleProduct.brand,
+          pricing: {
+            price: singleProduct.pricing.price,
+            sellprice: singleProduct.pricing.sellprice,
+          },
+          status: singleProduct.status,
+          meta: {
+            description: singleProduct.meta.description,
+            keywords: singleProduct.meta.keywords,
+            title: singleProduct.meta.title,
+          },
+          shipping: {
+            depth: singleProduct.shipping.depth,
+            height: singleProduct.shipping.height,
+            shippingClass: singleProduct.shipping.shippingClass,
+            weight: singleProduct.shipping.weight,
+            width: singleProduct.shipping.width,
+          },
+          tax_class: singleProduct.taxClass,
+          feature_product: singleProduct.feature_product,
+          product_type: singleProduct.product_type,
+          quantity: singleProduct.quantity,
+          sku: singleProduct.sku,
+          feautred_image: singleProduct.feature_image,
+          gallery_image: singleProduct.gallery_image,
+          attribute: [],
+          variant: [],
+          short_description: 'NA',
+          custom_field: [],
+        };
+        setProductDetail(newData);
       }
     } else {
       setProductDetail({});
@@ -152,7 +197,8 @@ const EditProductsScreen = ({route, navigation}) => {
   };
 
   const onNestedObjectValueChange = (object, name, value) => {
-    productDetail[object][name] = value;
+    productDetail[object][name] = value.toString();
+
     setProductDetail({...productDetail});
   };
 
@@ -160,7 +206,7 @@ const EditProductsScreen = ({route, navigation}) => {
     var updatedImages = productDetail.update_gallery_image || [];
     updatedImages.push(img);
     productDetail.update_gallery_image = updatedImages;
-    productDetail.gallery_image.push(img);
+    // productDetail.gallery_image.push(img);
     setProductDetail({...productDetail});
     setGallery([...gallery, img]);
   };
@@ -189,7 +235,6 @@ const EditProductsScreen = ({route, navigation}) => {
     UPDATE_PRODUCT,
     {
       onError: error => {
-        console.log(error);
         GraphqlError(error);
       },
       onCompleted: data => {
@@ -207,9 +252,47 @@ const EditProductsScreen = ({route, navigation}) => {
   };
 
   const UpdateProductSubmit = () => {
+    const result = [];
+    groups.forEach(group => {
+      group.attributes.forEach(attribute => {
+        result.push({
+          attributeId: attribute.keyId,
+          key: attribute.key,
+          attributeValueId: attribute.valueId,
+          value: attribute.value,
+          group: group.name,
+        });
+      });
+    });
+
+    if (isEmpty(addProductDetail.name)) {
+      setValidationMessage('Name is Required');
+      setShowAlert(true);
+      return;
+    } else if (isEmpty(CategoryIDs)) {
+      setValidationMessage('Category is Required');
+      setShowAlert(true);
+      return;
+    } else if (isEmpty(description)) {
+      setValidationMessage('Description is Required');
+      setShowAlert(true);
+      return;
+    } else if (isEmpty(pricing)) {
+      setValidationMessage('Price is Required');
+      setShowAlert(true);
+      return;
+    } else if (isEmpty(sku)) {
+      setValidationMessage('SKU is Required');
+      setShowAlert(true);
+      return;
+    } else if (isEmpty(quantity)) {
+      setValidationMessage('Quantity is Required');
+      setShowAlert(true);
+      return;
+    }
     var CategoryIDs = productDetail.categoryId.map(cat => cat.id);
     var details = {
-      id: productDetail.id,
+      _id: productDetail._id,
       name: productDetail.name,
       url: productDetail.url,
       categoryId: CategoryIDs,
@@ -223,12 +306,13 @@ const EditProductsScreen = ({route, navigation}) => {
       featured_product: productDetail.featured_product,
       product_type: productDetail.product_type,
       shipping: productDetail.shipping,
-      tax_class: productDetail.tax_class,
+      tax_class: productDetail.taxClass,
       meta: productDetail.meta,
       custom_field: productDetail.custom_field,
-      attribute: productDetail.attribute,
-      variant: productDetail.variant,
-      combinations: productDetail.combinations,
+      specifications: result,
+      // attribute: productDetail.attribute,
+      // variant: productDetail.variant,
+      // combinations: productDetail.combinations,
       update_gallery_image: productDetail.update_gallery_image || '',
       removed_image: productDetail.removed_image || '',
       update_feature_image: productDetail.update_feature_image || '',
@@ -270,6 +354,8 @@ const EditProductsScreen = ({route, navigation}) => {
           onAttrAndVariantParent={(variantItem, attributeItem) =>
             onAttrAndVariant(variantItem, attributeItem)
           }
+          groups={groups}
+          setGroups={setGroups}
         />
       ) : null}
     </>

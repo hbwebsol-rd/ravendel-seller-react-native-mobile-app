@@ -4,7 +4,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import Colors from '../../utils/color';
 
 const Accordion = ({title, children, defaultOpen, dense, withCheckbox}) => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
 
   useEffect(() => {
     if (defaultOpen) {

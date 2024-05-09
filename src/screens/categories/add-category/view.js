@@ -1,154 +1,23 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import AppLoader from '../../components/loader';
 import {Input} from '@rneui/themed';
 import FeaturedImageComponents from '../../components/featuredImageComponents';
 import {AddCategoryWrapper, FormWrapper, MetaSectiontitle} from './styles';
 import {Query, gql, useQuery} from '@apollo/client';
 import {useMutation} from '@apollo/client';
-import {GET_CATEGORIES, ADD_CATEGORY} from '../../../queries/productQueries';
+import {
+  GET_CATEGORIES,
+  ADD_CATEGORY,
+  GET_URL,
+} from '../../../queries/productQueries';
 import CustomPicker from '../../components/custom-picker';
 import FormActionsComponent from '../../components/formAction';
 import {GraphqlError, GraphqlSuccess} from '../../components/garphqlMessages';
+import {unflatten} from '../../../utils/helper';
+import {Picker} from '@react-native-picker/picker';
 import {Text} from 'react-native';
-const GET_APP_SETTING = gql`
-  query HomePageSettings {
-    getSettings {
-      seo {
-        meta_title
-        meta_tag
-        meta_description
-      }
-      imageStorage {
-        status
-        s3_id
-        s3_key
-      }
-      store {
-        currency_options {
-          currency
-          currency_position
-          thousand_separator
-          decimal_separator
-          number_of_decimals
-        }
-        store_address {
-          city
-          country
-          state
-          zip
-        }
-        measurements {
-          weight_unit
-          dimensions_unit
-        }
-        inventory {
-          manage_stock
-          notifications {
-            show_out_of_stock
-            alert_for_minimum_stock
-          }
-          notification_recipients
-          low_stock_threshold
-          out_of_stock_threshold
-          out_of_stock_visibility
-          stock_display_format
-        }
-      }
-      paymnet {
-        cash_on_delivery {
-          enable
-          title
-          description
-          instructions
-        }
-        bank_transfer {
-          enable
-          title
-          description
-          instructions
-          account_details {
-            account_name
-            account_number
-            bank_name
-            short_code
-            iban
-            bic_swift
-          }
-        }
-        stripe {
-          enable
-          title
-          description
-          inline_credit_card_form
-          statement_descriptor
-          capture
-          test_mode
-          publishable_key
-          secret_key
-          webhook_key
-        }
-        paypal {
-          enable
-          title
-          description
-          paypal_email
-          ipn_email_notification
-          receiver_email
-          paypal_identity_token
-          invoice_prefix
-          test_mode
-          api_username
-          api_password
-          api_signature
-        }
-      }
-      appearance {
-        home {
-          slider {
-            image
-            link
-            open_in_tab
-          }
-          add_section_in_home {
-            feature_product
-            recently_added_products
-            most_viewed_products
-            recently_bought_products
-            product_recommendation
-            products_on_sales
-            product_from_specific_categories
-          }
-          add_section_web {
-            label
-            name
-            visible
-            category
-          }
-        }
-        theme {
-          primary_color
-          logo
-        }
-        mobile {
-          slider {
-            image
-            link
-            open_in_tab
-          }
-          mobile_section {
-            label
-            section_img
-            visible
-            url
-            category
-          }
-        }
-      }
-      createdAt
-      updatedAt
-    }
-  }
-`;
+import URLComponents from '../../components/urlComponents';
+import {mutation} from '../../../utils/service';
 var categoryObject = {
   name: '',
   parentId: null,
@@ -163,14 +32,15 @@ var categoryObject = {
 };
 
 const AddCategoryView = ({navigation}) => {
+  const Categories = useQuery(GET_CATEGORIES);
   const [categoryForm, setCategoryForm] = useState(categoryObject);
+  const [allCategories, setAllCategories] = useState([]);
+  const [loader, setLoader] = useState(false);
   const [validation, setValdiation] = useState({
     name: '',
     description: '',
   });
 
-  const {loading, error, data} = useQuery(GET_APP_SETTING);
-  console.log(loading, error, data, 'pop');
   const [addCategory, {loading: addedLoading}] = useMutation(ADD_CATEGORY, {
     onError: error => {
       GraphqlError(error);
@@ -197,9 +67,36 @@ const AddCategoryView = ({navigation}) => {
     }
   };
 
+  useEffect(() => {
+    if (Categories.data && Categories.data.productCategories) {
+      var selectedCat = JSON.parse(
+        JSON.stringify(Categories.data.productCategories.data),
+      );
+      if (selectedCat && selectedCat.length) {
+        setAllCategories(unflatten(selectedCat));
+      }
+    }
+  }, [Categories.data]);
+
+  const isUrlExist = async url => {
+    setLoader(true);
+    console.log(url, 'uuu');
+    let updatedUrl = await mutation(GET_URL, {url: url});
+    setCategoryForm({
+      ...categoryForm,
+      url: updatedUrl.data.validateUrl.url,
+    });
+    setLoader(false);
+  };
+
+  const onBlurNameInput = value => {
+    if (categoryForm.url === '' && categoryForm.name !== '') {
+      isUrlExist(value);
+    }
+  };
   return (
     <>
-      {addedLoading ? <AppLoader /> : null}
+      {addedLoading || loader ? <AppLoader /> : null}
       <FormActionsComponent
         onCancel={() => navigation.goBack()}
         onSubmit={AddCategoryForm}
@@ -219,6 +116,7 @@ const AddCategoryView = ({navigation}) => {
                 !!event.nativeEvent && !!event.nativeEvent.text
                   ? event.nativeEvent.text
                   : event;
+              onBlurNameInput(value);
               if (categoryForm.meta && categoryForm.meta.title === '') {
                 categoryForm.meta.title = value;
                 setCategoryForm({
@@ -227,6 +125,26 @@ const AddCategoryView = ({navigation}) => {
               }
             }}
           />
+          <URLComponents
+            url={categoryForm.url}
+            updateOf="Product"
+            changePermalink={value => inputChange('url', value)}
+            updatePermalink={value => inputChange('url', value)}
+          />
+          <Text style={{fontSize: 15, marginLeft: 8, fontWeight: '600'}}>
+            Parent Cateogry
+          </Text>
+          <Picker
+            style={{marginBottom: 10}}
+            selectedValue={categoryForm.parentId}
+            onValueChange={itemValue => {
+              setCategoryForm({...categoryForm, ['parentId']: itemValue});
+            }}>
+            <Picker.Item label="Select Key" value="" />
+            {allCategories.map(value => (
+              <Picker.Item key={value.id} label={value.name} value={value.id} />
+            ))}
+          </Picker>
           <Input
             label="Description"
             value={categoryForm.description}
@@ -237,33 +155,6 @@ const AddCategoryView = ({navigation}) => {
             numberOfLines={2}
             errorMessage={validation.description}
           />
-          {/* <Query query={GET_CATEGORIES}>
-            {({loading, error, data}) => {
-              if (loading) {
-                return <AppLoader />;
-              }
-              if (error) {
-                return <Text>Somethng went wrong</Text>;
-              }
-
-              const allCategories = data.productCategories;
-              return allCategories.length ? (
-                <CustomPicker
-                  iosDropdown
-                  pickerKey="name"
-                  pickerVal="id"
-                  androidPickerData={allCategories}
-                  selectedValue={categoryForm.parentId}
-                  iosPickerData={allCategories}
-                  pickerValChange={val =>
-                    setCategoryForm({...categoryForm, ['parentId']: val})
-                  }
-                  placeholder="Please Select"
-                  label="Parent Category"
-                />
-              ) : null;
-            }}
-          </Query> */}
 
           <FeaturedImageComponents
             image={categoryForm.image}

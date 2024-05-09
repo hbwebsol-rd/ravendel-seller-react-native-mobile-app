@@ -7,7 +7,7 @@ const TaxComponent = ({taxState, onTaxChange, tax_class}) => {
   return (
     <TaxWrapper>
       {!isEmpty(taxState) ? (
-        !taxState.global.is_global ? (
+        !taxState.data.global.is_global ? (
           <Picker
             selectedValue={tax_class}
             onValueChange={(itemValue, itemIndex) => {
@@ -18,11 +18,13 @@ const TaxComponent = ({taxState, onTaxChange, tax_class}) => {
               label={'Select Tax'}
               color="rgba(0,0,0,0.5)"
             />
-            {taxState.tax_class.map((tax) => {
-              return (
-                <Picker.Item key={tax._id} label={tax.name} value={tax._id} />
-              );
-            })}
+
+            {taxState?.data?.taxClass &&
+              taxState.data.taxClass.map(tax => {
+                return (
+                  <Picker.Item key={tax._id} label={tax.name} value={tax._id} />
+                );
+              })}
           </Picker>
         ) : (
           <GlobalTaxActiveText>

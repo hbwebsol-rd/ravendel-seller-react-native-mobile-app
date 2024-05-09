@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Input} from "@rneui/themed";
+import {Input} from '@rneui/themed';
 import {
   AddCouponWrapper,
   FormWrapper,
@@ -16,7 +16,7 @@ import moment from 'moment';
 import {ADD_COUPON} from '../../../queries/couponQueries';
 import {GET_CATEGORIES, GET_PRODUCTS} from '../../../queries/productQueries';
 import AppLoader from '../../components/loader';
-import {Query} from '@apollo/client';
+import {Query, useQuery} from '@apollo/client';
 import {useMutation} from '@apollo/client';
 import FormActionsComponent from '../../components/formAction';
 import MulipleSelect from '../../components/multiple-selection';
@@ -45,6 +45,21 @@ var stateObj = {
 const AddCouponsForm = ({navigation}) => {
   const [couponForm, setCouponForm] = useState(stateObj);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const {
+    loading: productsLoading,
+    error: productsError,
+    data: productsData,
+  } = useQuery(GET_PRODUCTS);
+
+  const {
+    loading: categoriesLoading,
+    error: categoriesError,
+    data: categoriesData,
+  } = useQuery(GET_CATEGORIES);
+  console.log(productsData, 'prodcdata');
+  const products = productsData?.products?.data;
+  const allCategories = categoriesData?.productCategories?.data;
+
   const [validation, setValdiation] = useState({
     code: '',
     description: '',
@@ -52,10 +67,10 @@ const AddCouponsForm = ({navigation}) => {
   });
 
   const [addCoupon, {loading: addedLoading}] = useMutation(ADD_COUPON, {
-    onError: (error) => {
+    onError: error => {
       GraphqlError(error);
     },
-    onCompleted: (data) => {
+    onCompleted: data => {
       GraphqlSuccess('Added successfully');
       setCouponForm(stateObj);
       navigation.goBack();
@@ -93,7 +108,7 @@ const AddCouponsForm = ({navigation}) => {
     setDatePickerVisibility(false);
   };
 
-  const handleConfirm = (date) => {
+  const handleConfirm = date => {
     var convertedDate = moment(date).format('YYYY-MM-DD');
     setCouponForm({...couponForm, ['expire']: convertedDate});
     hideDatePicker();
@@ -111,7 +126,7 @@ const AddCouponsForm = ({navigation}) => {
           <Input
             label="Coupon Code"
             value={couponForm.code}
-            onChangeText={(value) =>
+            onChangeText={value =>
               setCouponForm({...couponForm, ['code']: value})
             }
             errorMessage={validation.code}
@@ -119,7 +134,7 @@ const AddCouponsForm = ({navigation}) => {
           <Input
             label="Description"
             value={couponForm.description}
-            onChangeText={(value) =>
+            onChangeText={value =>
               setCouponForm({...couponForm, ['description']: value})
             }
             multiline
@@ -129,7 +144,7 @@ const AddCouponsForm = ({navigation}) => {
           <Input
             label="Coupon Amount"
             value={couponForm.discount_value}
-            onChangeText={(value) =>
+            onChangeText={value =>
               setCouponForm({...couponForm, ['discount_value']: value})
             }
             keyboardType="numeric"
@@ -154,7 +169,7 @@ const AddCouponsForm = ({navigation}) => {
             androidPickerData={discountType}
             selectedValue={couponForm.discount_type}
             iosPickerData={discountType}
-            pickerValChange={(val) =>
+            pickerValChange={val =>
               setCouponForm({...couponForm, ['discount_type']: val})
             }
             placeholder="Please Select"
@@ -165,7 +180,7 @@ const AddCouponsForm = ({navigation}) => {
             keyboardType="numeric"
             label="Minimum Spend"
             value={couponForm.minimum_spend}
-            onChangeText={(value) =>
+            onChangeText={value =>
               setCouponForm({...couponForm, ['minimum_spend']: value})
             }
           />
@@ -173,11 +188,72 @@ const AddCouponsForm = ({navigation}) => {
             keyboardType="numeric"
             label="Maximum Spend"
             value={couponForm.maximum_spend}
-            onChangeText={(value) =>
+            onChangeText={value =>
               setCouponForm({...couponForm, ['maximum_spend']: value})
             }
           />
-          <Query query={GET_PRODUCTS}>
+          {products && products.length ? (
+            <>
+              <MulipleSelect
+                items={products}
+                selected={couponForm.products}
+                onItemChange={items => {
+                  setCouponForm({
+                    ...couponForm,
+                    ['products']: items,
+                  });
+                }}
+                label="Products"
+                itemkey="name"
+                value="id"
+              />
+              <MulipleSelect
+                items={products}
+                selected={couponForm.exclude_products}
+                onItemChange={items => {
+                  setCouponForm({
+                    ...couponForm,
+                    ['exclude_products']: items,
+                  });
+                }}
+                label="Exclude Products"
+                itemkey="name"
+                value="id"
+              />
+            </>
+          ) : null}
+
+          {allCategories && allCategories.length ? (
+            <>
+              <MulipleSelect
+                items={allCategories}
+                selected={couponForm.categories}
+                onItemChange={items => {
+                  setCouponForm({
+                    ...couponForm,
+                    ['categories']: items,
+                  });
+                }}
+                label="Categories"
+                itemkey="name"
+                value="id"
+              />
+              <MulipleSelect
+                items={allCategories}
+                selected={couponForm.exclude_categories}
+                onItemChange={items => {
+                  setCouponForm({
+                    ...couponForm,
+                    ['exclude_categories']: items,
+                  });
+                }}
+                label="Exclude Categories"
+                itemkey="name"
+                value="id"
+              />
+            </>
+          ) : null}
+          {/* <Query query={GET_PRODUCTS}>
             {({loading, error, data}) => {
               if (loading) {
                 return <AppLoader />;
@@ -260,7 +336,7 @@ const AddCouponsForm = ({navigation}) => {
                 </>
               ) : null;
             }}
-          </Query>
+          </Query> */}
         </FormWrapper>
         <BottomDivider />
       </AddCouponWrapper>
