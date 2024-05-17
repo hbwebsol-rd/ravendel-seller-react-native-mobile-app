@@ -1,8 +1,9 @@
-import { combineReducers } from 'redux';
+import {combineReducers} from 'redux';
 import dashboard from './dashboardReducer';
+import alert from './alert';
 const MasterReducer = combineReducers({
-    dashboard
-
+  dashboard,
+  alert,
 });
 
 export default MasterReducer;
