@@ -22,6 +22,9 @@ import EditBrandScreen from './brands/edit-brand';
 import AllAttributesScreen from './attributes/all-attributes';
 import AddAttributeScreen from './attributes/add-attribute';
 import EditAttributeScreen from './attributes/edit-attribute';
+import AllGroupsScreen from './group/all-group';
+import AddGroupsScreen from './group/add-group';
+import EditGroupsScreen from './group/edit-group';
 import ConfirmScreen from './login/confirmOTP';
 
 export {
@@ -49,5 +52,8 @@ export {
   AllAttributesScreen,
   AddAttributeScreen,
   EditAttributeScreen,
+  AllGroupsScreen,
+  AddGroupsScreen,
+  EditGroupsScreen,
   ConfirmScreen,
 };
