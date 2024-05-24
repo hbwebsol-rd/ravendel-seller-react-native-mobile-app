@@ -6,6 +6,7 @@ export const AddAttributeWrapper = styled.ScrollView`
 export const NotesForAttribute = styled.Text`
   font-size: 14px;
   color: rgb(120, 120, 120);
+  margin-bottom: 15px;
 `;
 export const FormWrapper = styled.View`
   padding: 10px;

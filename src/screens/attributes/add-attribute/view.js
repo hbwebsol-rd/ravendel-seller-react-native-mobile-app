@@ -6,11 +6,16 @@ import {useMutation} from '@apollo/client';
 import {ADD_ATTRIBUTE} from '../../../queries/attributesQueries';
 import FormActionsComponent from '../../components/formAction';
 import {GraphqlError, GraphqlSuccess} from '../../components/garphqlMessages';
+import CustomCheckbox from '../../components/custom-checkbox';
+import {ALERT_ERROR} from '../../../store/reducer/alert';
+import {useDispatch} from 'react-redux';
 
 const AddAttrView = ({navigation}) => {
+  const dispatch = useDispatch();
   const [attribute, setAttribute] = useState({
     name: '',
     value: '',
+    allow_filter: false,
     arrayValue: [],
   });
   const [validation, setValdiation] = useState({
@@ -24,13 +29,18 @@ const AddAttrView = ({navigation}) => {
     },
     onCompleted: data => {
       console.log(data, 'add attri');
-      GraphqlSuccess('Added successfully');
-      setAttribute({
-        name: '',
-        value: '',
-        arrayValue: [],
-      });
-      navigation.goBack();
+      if (data.addAttribute.success) {
+        GraphqlSuccess('Added successfully');
+        setAttribute({
+          name: '',
+          value: '',
+          arrayValue: [],
+        });
+        navigation.goBack();
+      } else {
+        dispatch({type: ALERT_ERROR, payload: data?.addAttribute?.message});
+      }
+      return;
     },
   });
 
@@ -57,8 +67,8 @@ const AddAttrView = ({navigation}) => {
       var attrObject = {
         name: attribute.name,
         values: attribute.arrayValue,
+        allow_filter: attribute.allow_filter,
       };
-
       addAttribute({
         variables: {
           attribute: attrObject,
@@ -99,6 +109,16 @@ const AddAttrView = ({navigation}) => {
             Add attribute by typing them into the text box, one attribute per
             line.
           </NotesForAttribute>
+          <CustomCheckbox
+            label={'Allow Filter'}
+            isChecked={attribute.allow_filter}
+            onChange={() =>
+              setAttribute({
+                ...attribute,
+                allow_filter: !attribute.allow_filter,
+              })
+            }
+          />
         </FormWrapper>
       </AddAttributeWrapper>
     </>
