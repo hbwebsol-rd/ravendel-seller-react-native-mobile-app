@@ -2,7 +2,7 @@ import 'react-native-gesture-handler';
 import React, {useEffect, useState, useContext} from 'react';
 import Navigation from './src/navigation';
 import {createTheme, ThemeProvider} from '@rneui/themed';
-
+import Alert from './src/screens/components/alert-modal';
 import Colors from './src/utils/color';
 // import {ApolloClient} from 'apollo-client';
 // import {InMemoryCache} from 'apollo-cache-inmemory';
@@ -16,6 +16,8 @@ import APclient from './src/client';
 import {NavigationContainer} from '@react-navigation/native';
 import {Provider} from 'react-redux';
 import store from './src/store';
+import {BottomSheetModalProvider} from '@gorhom/bottom-sheet';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
 
 const App = () => {
   const AuthState = useContext(AuthContext);
@@ -82,15 +84,20 @@ const App = () => {
 
   return (
     <>
-      <Provider store={store}>
-        <ApolloProvider client={APclient}>
-          <ThemeProvider theme={theme}>
-            <NavigationContainer>
-              <Navigation />
-            </NavigationContainer>
-          </ThemeProvider>
-        </ApolloProvider>
-      </Provider>
+      <GestureHandlerRootView style={{flex: 1}}>
+        <Provider store={store}>
+          <ApolloProvider client={APclient}>
+            <ThemeProvider theme={theme}>
+              <BottomSheetModalProvider>
+                <NavigationContainer>
+                  <Navigation />
+                </NavigationContainer>
+                <Alert />
+              </BottomSheetModalProvider>
+            </ThemeProvider>
+          </ApolloProvider>
+        </Provider>
+      </GestureHandlerRootView>
     </>
   );
 };
