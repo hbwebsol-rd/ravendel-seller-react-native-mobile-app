@@ -12,12 +12,15 @@ import CustomPicker from '../../components/custom-picker';
 import FormActionsComponent from '../../components/formAction';
 import {GraphqlError, GraphqlSuccess} from '../../components/garphqlMessages';
 import {Text} from 'react-native';
+import {ALERT_SUCCESS} from '../../../store/reducer/alert';
+import {useDispatch} from 'react-redux';
 
 const EditCategoryView = ({navigation, singleCategoryDetail}) => {
+  const dispatch = useDispatch();
   const {loading, error, data} = useQuery(GET_CATEGORIES);
-  console.log(data, 'cat');
-  const allCategories = data.productCategories.data;
+  const allCategory = data.productCategories.data;
   const [categoryForm, setCategoryForm] = useState({});
+  const [allCategories, setAllCategories] = useState([]);
   const [validation, setValdiation] = useState({
     name: '',
     description: '',
@@ -28,15 +31,29 @@ const EditCategoryView = ({navigation, singleCategoryDetail}) => {
     UPDATE_CATEGORY,
     {
       onError: error => {
-        GraphqlError(error);
+        console.log(error);
+        // GraphqlError(error);
       },
       onCompleted: data => {
-        GraphqlSuccess('Updated successfully');
-        setCategoryForm({});
+        // GraphqlSuccess('Updated successfully');
+        dispatch({type: ALERT_SUCCESS, payload: 'Updated successfully'});
         navigation.goBack();
+        setCategoryForm({});
       },
     },
   );
+
+  useEffect(() => {
+    console.log(singleCategoryDetail.name, ' namm');
+    if (data.productCategories) {
+      const cat = data.productCategories.data.filter(
+        item => item.name !== singleCategoryDetail.name,
+      );
+      // console.log(cat, 'aa');
+
+      setAllCategories(cat);
+    }
+  }, [data?.productCategories, singleCategoryDetail]);
 
   useEffect(() => {
     if (singleCategoryDetail) {
@@ -70,6 +87,7 @@ const EditCategoryView = ({navigation, singleCategoryDetail}) => {
           keywords: categoryForm.meta.keywords,
         },
       };
+      console.log(categoryObject, 'co');
       updateCategory({variables: categoryObject});
     }
   };
@@ -141,33 +159,6 @@ const EditCategoryView = ({navigation, singleCategoryDetail}) => {
                   label="Parent Category"
                 />
               ) : null}
-              {/* <Query query={GET_CATEGORIES}>
-                {({loading, error, data}) => {
-                  if (loading) {
-                    return <AppLoader />;
-                  }
-                  if (error) {
-                    return <Text>Somethng went wrong</Text>;
-                  }
-
-                  const allCategories = data.productCategories;
-                  return allCategories.length ? (
-                    <CustomPicker
-                      iosDropdown
-                      pickerKey="name"
-                      pickerVal="id"
-                      androidPickerData={allCategories}
-                      selectedValue={categoryForm.parentId}
-                      iosPickerData={allCategories}
-                      pickerValChange={(val) =>
-                        setCategoryForm({...categoryForm, ['parentId']: val})
-                      }
-                      placeholder="Please Select"
-                      label="Parent Category"
-                    />
-                  ) : null;
-                }}
-              </Query> */}
 
               {categoryForm.image && categoryForm.image.medium ? (
                 <FeaturedImageComponents

@@ -140,6 +140,7 @@ const styles = StyleSheet.create({
   badgeWrapper: {
     // paddingHorizontal: 10,
     paddingVertical: 5,
+    paddingHorizontal: 15,
     borderWidth: 1,
     borderColor: '#3a3a3a',
     flexDirection: 'row',

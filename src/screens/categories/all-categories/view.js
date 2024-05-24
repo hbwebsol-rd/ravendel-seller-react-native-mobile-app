@@ -15,7 +15,7 @@ import {useMutation} from '@apollo/client';
 import AppLoader from '../../components/loader';
 import {GET_CATEGORIES, DELETE_CATEGORY} from '../../../queries/productQueries';
 import {useIsFocused} from '@react-navigation/native';
-import {Alert, ScrollView, View} from 'react-native';
+import {Alert, FlatList, ScrollView, View} from 'react-native';
 import {unflatten} from '../../../utils/helper';
 import MainContainer from '../../components/mainContainer';
 import {GraphqlError, GraphqlSuccess} from '../../components/garphqlMessages';
@@ -56,9 +56,9 @@ const AllCategoriesView = ({navigation}) => {
   console.log(JSON.stringify(data.productCategories.data));
   var allcategories = unflatten(data.productCategories.data);
 
-  const categoriesListing = categories => {
-    return categories.map((category, i) =>
-      category.children && category.children.length > 0 ? (
+  const Item = ({category, i}) => (
+    <>
+      {category.children && category.children.length > 0 ? (
         <View key={i}>
           <CategoryWrapper>
             <CategoryName
@@ -72,9 +72,8 @@ const AllCategoriesView = ({navigation}) => {
             <CategoryAction>
               <CategoryEditBtn
                 onPress={() => {
-                  navigation.navigate('CategoryScreen', {
-                    screen: 'EditCategory',
-                    params: {singleCategory: category},
+                  navigation.navigate('EditCategory', {
+                    singleCategory: category,
                   });
                 }}>
                 <Icon name="pencil" size={15} color="#000" />
@@ -108,7 +107,29 @@ const AllCategoriesView = ({navigation}) => {
               paddingLeft: 12,
               backgroundColor: '#fff',
             }}>
-            {categoriesListing(category.children)}
+            <FlatList
+              initialNumToRender={10}
+              keyboardShouldPersistTaps="always"
+              showsVerticalScrollIndicator={false}
+              // refreshControl={
+              //   <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              // }
+              data={category.children}
+              renderItem={renderItem}
+              // ListEmptyComponent={() => (
+              //   <View>
+              //     <Text
+              //       style={{
+              //         fontSize: 16,
+              //         alignSelf: 'center',
+              //         color: 'grey',
+              //       }}>
+              //       No Records Found
+              //     </Text>
+              //   </View>
+              // )}
+            />
+            {/* {categoriesListing(category.children)} */}
           </View>
         </View>
       ) : (
@@ -122,10 +143,7 @@ const AllCategoriesView = ({navigation}) => {
           <CategoryAction>
             <CategoryEditBtn
               onPress={() => {
-                navigation.navigate('CategoryScreen', {
-                  screen: 'EditCategory',
-                  params: {singleCategory: category},
-                });
+                navigation.navigate('EditCategory', {singleCategory: category});
               }}>
               <Icon name="pencil" size={15} color="#000" />
             </CategoryEditBtn>
@@ -153,15 +171,39 @@ const AllCategoriesView = ({navigation}) => {
             </CategoryDeleteAction>
           </CategoryAction>
         </CategoryWrapper>
-      ),
-    );
-  };
+      )}
+    </>
+  );
+
+  const renderItem = ({item, i}) => <Item category={item} i={i} />;
 
   return (
     <>
       {deleteLoading ? <AppLoader /> : null}
       <ScrollView showsVerticalScrollIndicator={false}>
-        {categoriesListing(allcategories)}
+        <FlatList
+          initialNumToRender={10}
+          keyboardShouldPersistTaps="always"
+          showsVerticalScrollIndicator={false}
+          // refreshControl={
+          //   <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          // }
+          data={allcategories}
+          renderItem={renderItem}
+          ListEmptyComponent={() => (
+            <View>
+              <Text
+                style={{
+                  fontSize: 16,
+                  alignSelf: 'center',
+                  color: 'grey',
+                }}>
+                No Records Found
+              </Text>
+            </View>
+          )}
+        />
+        {/* {categoriesListing(allcategories)} */}
       </ScrollView>
     </>
   );

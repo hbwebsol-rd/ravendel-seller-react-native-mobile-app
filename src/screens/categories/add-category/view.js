@@ -80,7 +80,6 @@ const AddCategoryView = ({navigation}) => {
 
   const isUrlExist = async url => {
     setLoader(true);
-    console.log(url, 'uuu');
     let updatedUrl = await mutation(GET_URL, {url: url});
     setCategoryForm({
       ...categoryForm,
@@ -140,7 +139,7 @@ const AddCategoryView = ({navigation}) => {
             onValueChange={itemValue => {
               setCategoryForm({...categoryForm, ['parentId']: itemValue});
             }}>
-            <Picker.Item label="Select Key" value="" />
+            <Picker.Item label="Select Category" value="" />
             {allCategories.map(value => (
               <Picker.Item key={value.id} label={value.name} value={value.id} />
             ))}
