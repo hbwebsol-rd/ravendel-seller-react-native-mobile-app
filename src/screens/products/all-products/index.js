@@ -17,12 +17,14 @@ const AllProductsScreen = ({navigation, route}) => {
   return (
     <>
       <AppHeader title="Products" navigation={navigation} />
-      <AllProductsView navigation={navigation} RefecthAllProducts={relaod} stopReload={() => setReload(false)}/>
+      <AllProductsView
+        navigation={navigation}
+        RefecthAllProducts={relaod}
+        stopReload={() => setReload(false)}
+      />
       <FabBtn
         onPressFunc={() => {
-          navigation.navigate('ProductsScreen', {
-            screen: 'AddProduct',
-          });
+          navigation.navigate('AddProduct');
         }}
       />
     </>

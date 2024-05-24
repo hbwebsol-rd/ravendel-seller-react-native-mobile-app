@@ -10,9 +10,7 @@ const AllCategoriesScreen = ({navigation}) => {
       <AllCategoriesView navigation={navigation} />
       <FabBtn
         onPressFunc={() => {
-          navigation.navigate('CategoryScreen', {
-            screen: 'AddCategory',
-          });
+          navigation.navigate('AddCategory');
         }}
       />
     </>

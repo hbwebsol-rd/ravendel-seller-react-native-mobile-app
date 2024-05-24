@@ -7,6 +7,28 @@ import {
   LoginScreen,
   DashboardScreen,
   ConfirmScreen,
+  AllGroupsScreen,
+  AllProductsScreen,
+  AddProductsScreen,
+  EditProductsScreen,
+  AllAttributesScreen,
+  EditAttributeScreen,
+  AddAttributeScreen,
+  AllCategoriesScreen,
+  EditCategoryScreen,
+  AddCategoryScreen,
+  AllBrandsScreen,
+  EditBrandScreen,
+  AddBrandScreen,
+  EditGroupsScreen,
+  AddGroupsScreen,
+  AllCouponsScreen,
+  EditCouponsScreen,
+  AddCouponsScreen,
+  AllOrdersScreen,
+  ViewOrderScreen,
+  AllCustomerScreen,
+  ViewCustomerScreen,
 } from '../screens';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import {createStackNavigator} from '@react-navigation/stack';
@@ -18,11 +40,13 @@ import ProductsScreen from './product-screens';
 import CategoriesScreens from './category-screens';
 import BrandsScreens from './brands-screens';
 import AttrbutesScreen from './attributes-screen';
+import GroupScreen from './group-screen';
 import {Context as AuthContext} from '../context/AuthContext';
 import {isEmpty} from '../utils/helper';
 // import InternetConnectivity from '../screens/components/internet-connectivity';
 import SplashScreen from '../screens/components/splash-screen';
 import {setToken} from '../utils/api';
+import Test from '../screens/dashboard/test';
 
 const Drawer = createDrawerNavigator();
 const Auth = createStackNavigator();
@@ -61,27 +85,86 @@ const Navigation = () => {
                 unmountOnBlur: true,
                 lazy: false,
               }}
-              backBehavior={'initialRoute'}
+              backBehavior={'history'}
               detachInactiveScreens={true}
               drawerContent={props => <CustomDrawer {...props} />}>
               <Drawer.Screen name="Dashboard" component={DashboardScreen} />
-              <Drawer.Screen name="ProductsScreen" component={ProductsScreen} />
+              <Drawer.Screen name="Test" component={Test} />
+
+              <Drawer.Screen name="AllProduct" component={AllProductsScreen} />
+              <Drawer.Screen name="AddProduct" component={AddProductsScreen} />
               <Drawer.Screen
+                name="EditProduct"
+                component={EditProductsScreen}
+              />
+              {/* <Drawer.Screen name="ProductsScreen" component={ProductsScreen} /> */}
+
+              <Drawer.Screen
+                name="AllCategories"
+                component={AllCategoriesScreen}
+              />
+              <Drawer.Screen
+                name="EditCategory"
+                component={EditCategoryScreen}
+              />
+              <Drawer.Screen name="AddCategory" component={AddCategoryScreen} />
+              {/* <Drawer.Screen
                 name="CategoryScreen"
                 component={CategoriesScreens}
-              />
-              <Drawer.Screen name="BrandsScreens" component={BrandsScreens} />
+              /> */}
+
+              <Drawer.Screen name="AllBrands" component={AllBrandsScreen} />
+              <Drawer.Screen name="EditBrand" component={EditBrandScreen} />
+              <Drawer.Screen name="AddBrand" component={AddBrandScreen} />
+              {/* <Drawer.Screen name="BrandsScreens" component={BrandsScreens} /> */}
+
               <Drawer.Screen
+                name="AllAttributes"
+                component={AllAttributesScreen}
+              />
+              <Drawer.Screen
+                name="EditAttribute"
+                component={EditAttributeScreen}
+              />
+              <Drawer.Screen
+                name="AddAttribute"
+                component={AddAttributeScreen}
+              />
+              {/* <Drawer.Screen
+                options={{unmountOnBlur: true}}
                 name="AttrbutesScreen"
                 component={AttrbutesScreen}
-              />
-              <Drawer.Screen name="CouponScreen" component={CouponScreens} />
+              /> */}
+
+              <Drawer.Screen name="AllGroups" component={AllGroupsScreen} />
+              <Drawer.Screen name="EditGroup" component={EditGroupsScreen} />
+              <Drawer.Screen name="AddGroup" component={AddGroupsScreen} />
+              {/* <Drawer.Screen name="GroupScreen" component={GroupScreen} /> */}
+
+              <Drawer.Screen name="AllCoupons" component={AllCouponsScreen} />
+              <Drawer.Screen name="EditCoupon" component={EditCouponsScreen} />
+              <Drawer.Screen name="AddCoupons" component={AddCouponsScreen} />
+              {/* <Drawer.Screen name="CouponScreen" component={CouponScreens} /> */}
+
               <Drawer.Screen
+                name="AllCustomers"
+                component={AllCustomerScreen}
+              />
+              <Drawer.Screen
+                name="ViewCustomer"
+                component={ViewCustomerScreen}
+              />
+              {/* <Drawer.Screen
                 name="CustomersScreen"
                 component={CustomersScreen}
-              />
+              /> */}
+
               <Drawer.Screen name="Profile" component={ProfileScreen} />
-              <Drawer.Screen name="OrdersScreen" component={OrdersScreen} />
+
+              <Drawer.Screen name="Order" component={AllOrdersScreen} />
+              <Drawer.Screen name="ViewOrder" component={ViewOrderScreen} />
+              {/* <Drawer.Screen name="OrdersScreen" component={OrdersScreen} /> */}
+
               <Drawer.Screen name="Setting" component={SettingScreen} />
             </Drawer.Navigator>
           ) : (

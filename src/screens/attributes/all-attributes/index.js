@@ -10,9 +10,7 @@ const AllAttributesScreen = ({navigation}) => {
       <AllAttributesView navigation={navigation} />
       <FabBtn
         onPressFunc={() => {
-          navigation.navigate('AttrbutesScreen', {
-            screen: 'AddAttribute',
-          });
+          navigation.navigate('AddAttribute');
         }}
       />
     </>
