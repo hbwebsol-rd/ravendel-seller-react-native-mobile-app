@@ -95,6 +95,22 @@ const DELETE_USER = gql`
   }
 `;
 
+const GET_APP_SETTING = gql`
+  query HomePageSettings {
+    getSettings {
+      store {
+        currency_options {
+          currency
+          currency_position
+          thousand_separator
+          decimal_separator
+          number_of_decimals
+        }
+      }
+    }
+  }
+`;
+
 export {
   GET_USERS,
   GET_USER,
@@ -102,4 +118,5 @@ export {
   UPDATE_USER,
   DELETE_USER,
   GET_DASHBOARDDATA,
+  GET_APP_SETTING,
 };

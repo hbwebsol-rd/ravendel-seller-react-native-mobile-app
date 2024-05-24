@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import {Text} from 'react-native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {FlatList, RefreshControl, StyleSheet, Text, View} from 'react-native';
 import {
   OrdersWrapper,
   OrderCard,
@@ -10,7 +10,18 @@ import {
   OrderView,
 } from './styles';
 import CustomPicker from '../../components/custom-picker';
-
+import {GET_ORDER, GET_ORDERS} from '../../../queries/orderQueries';
+import {useQuery} from '@apollo/client';
+import moment from 'moment';
+import ThemeColor from '../../../utils/color';
+import {Input} from '@rneui/base';
+import {isEmpty, wait} from '../../../utils/helper';
+import {BottomSheetModal, BottomSheetModalProvider} from '@gorhom/bottom-sheet';
+import {ScrollView} from 'react-native-gesture-handler';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import {TouchableOpacity} from 'react-native';
+import CustomDatePicker from '../../components/datetimepicker';
+import AppLoader from '../../components/loader';
 const Orders = [
   {
     order_date: '30 Oct 2020',
@@ -43,83 +54,476 @@ const Orders = [
 ];
 
 const picker = [
-  {label: 'Pending', value: 1},
-  {label: 'Not Confirmed', value: 2},
-  {label: 'Out for delievery', value: 3},
-  {label: 'Process', value: 4},
+  {label: 'In Progress', value: 'inprogress'},
+  {label: 'Shipped', value: 'shipped'},
+  {label: 'Out for delievery', value: 'outfordelivery'},
+  {label: 'Delivered', value: 'delivered'},
+];
+
+const paymentPicker = [
+  {label: 'Pending', value: 'pending'},
+  {label: 'Failed', value: 'failed'},
+  {label: 'Completed', value: 'completed'},
+  {label: 'Cancelled', value: 'cancelled'},
+  {label: 'Processing', value: 'processing'},
 ];
 const AllOrderView = ({navigation}) => {
-  const [allOrders, setAllOrdres] = useState(Orders);
-  const [fillter, setFillter] = useState('all');
+  const {loading, error, data, refetch} = useQuery(GET_ORDERS, {
+    notifyOnNetworkStatusChange: true,
+  });
+  const [AllOrders, setAllOrders] = useState([]);
+  const [shippingstatus, setFillter] = useState('');
+  const [paymentstatus, setPaymentFillter] = useState('');
+  const [inpvalue, setInpvalue] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+  const [startDate, setFrom] = useState('');
+  const [endDate, setTo] = useState('');
 
-  const getColor = (type) => {
-    var bgcolor = {backgroundColor: ''};
+  const bottomSheetModalRef = useRef(null);
+
+  // variables
+  const snapPoints = useMemo(() => ['60%'], []); // For Bottomsheet Modal
+  // callbacks
+  const handlePresentModalPress = useCallback(() => {
+    bottomSheetModalRef.current?.present();
+  }, []);
+
+  const handleSheetChanges = useCallback(index => {
+    console.log('handleSheetChanges', index);
+  }, []);
+
+  const handleinpiut = e => {
+    setInpvalue(e);
+  };
+
+  const handleDate = (name, val) => {
+    if (name === 'From') {
+      setFrom(val);
+    } else {
+      setTo(val);
+    }
+  };
+
+  useEffect(() => {
+    refetch();
+  }, []);
+
+  useEffect(() => {
+    if (data && data?.orders?.data) setAllOrders(data?.orders?.data);
+  }, [data]);
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    refetch();
+    wait(2000).then(() => setRefreshing(false));
+  }, []);
+
+  const getColor = type => {
+    var bgcolor = '';
+    // console.log(type);
     switch (type) {
-      case 1:
-        bgcolor = {backgroundColor: '#ffc10747'};
+      case 'inprogress':
+        bgcolor = ThemeColor.orangeColor;
         break;
-      case 2:
-        bgcolor = {backgroundColor: '#f4433638'};
+      case 'shipped':
+        bgcolor = ThemeColor.green;
         break;
-      case 3:
-        bgcolor = {backgroundColor: '#4caf5045'};
+      case 'delivered':
+        bgcolor = ThemeColor.green;
         break;
-      case 4:
-        bgcolor = {backgroundColor: '#2196f336'};
+      case 'outfordelivery':
+        bgcolor = ThemeColor.green;
+        break;
+      case 'processing':
+        bgcolor = ThemeColor.orangeColor;
+        break;
+      case 'pending':
+        bgcolor = ThemeColor.orangeColor;
+        break;
+      case 'failed':
+        bgcolor = ThemeColor.redColor;
+        break;
+      case 'success':
+        bgcolor = ThemeColor.green;
+        break;
+      case 'cancelled':
+        bgcolor = ThemeColor.redColor;
         break;
       default:
-        bgcolor = {backgroundColor: '#fff'};
+        bgcolor = '#fff';
         break;
     }
     return bgcolor;
   };
-  const handleFilter = (val) => {
+  const handleFilter = val => {
     if (val) {
-      var filterOrder = Orders.filter((order) => order.type === val);
-      setAllOrdres(filterOrder);
+      var filterOrder = data?.orders?.data.filter(
+        order => order.shippingStatus === val,
+      );
+      // setAllOrders(filterOrder);
       setFillter(val);
     } else {
       setFillter('All');
-      setAllOrdres(Orders);
+      // setAllOrders(data?.orders?.data);
     }
   };
-  return (
-    <OrdersWrapper>
-      <CustomPicker
-        iosSelect
-        pickerKey="label"
-        pickerVal="value"
-        androidPickerData={picker}
-        iosPickerData={picker}
-        selectedValue={fillter}
-        pickerValChange={(val) => {
-          handleFilter(val);
+
+  const handlePaymentFilter = val => {
+    if (val) {
+      var filterOrder = data?.orders?.data.filter(
+        order => order.paymentStatus === val,
+      );
+      // setAllOrders(filterOrder);
+      setPaymentFillter(val);
+    } else {
+      setPaymentFillter('All');
+      // setAllOrders(data?.orders?.data);
+    }
+  };
+
+  const applyFilter = () => {
+    const filterdata = data?.orders?.data?.filter(data1 => {
+      // console.log(data1, ' d1');
+      const matchesSearch = inpvalue
+        ? Object.values(data1).some(val => {
+            // console.log(
+            //   '-------',
+            //   val,
+            //   String(val).toLowerCase().includes(inpvalue.toLowerCase()),
+            // );
+            return (
+              String(val).toLowerCase().includes(inpvalue.toLowerCase()) ||
+              String(val?.firstname + ' ' + val?.lastname)
+                .toLowerCase()
+                .includes(inpvalue.toLowerCase())
+            );
+          })
+        : true;
+      // const matchesTabs =
+      // MuiTabsvalue === 'All' || data1[statusTabdata1.name] === MuiTabsvalue;
+      const matchesPaymentStatus =
+        !paymentstatus ||
+        data1['paymentStatus'].toLowerCase().includes(paymentstatus);
+      const matchesShippingStatus =
+        !shippingstatus ||
+        data1['shippingStatus'].toLowerCase().includes(shippingstatus);
+      const currentDate = new Date(data1['date']);
+      currentDate.setHours(0, 0, 0, 0); // Reset time endDate midnight
+      const startDateWithoutTime = startDate ? new Date(startDate) : null;
+      const endDateWithoutTime = endDate ? new Date(endDate) : null;
+      if (startDateWithoutTime) startDateWithoutTime.setHours(0, 0, 0, 0);
+      if (endDateWithoutTime) endDateWithoutTime.setHours(0, 0, 0, 0);
+      const matchesDateRange =
+        (!startDateWithoutTime || currentDate >= startDateWithoutTime) &&
+        (!endDateWithoutTime || currentDate <= endDateWithoutTime);
+
+      return (
+        matchesSearch &&
+        matchesPaymentStatus &&
+        matchesShippingStatus &&
+        matchesDateRange
+      );
+    });
+    setAllOrders(filterdata);
+    bottomSheetModalRef.current?.dismiss();
+  };
+
+  useEffect(() => {
+    applyFilter();
+  }, [inpvalue]);
+
+  const handleClear = () => {
+    setFillter('');
+    setPaymentFillter('');
+    setFrom('');
+    setTo('');
+    setAllOrders(data?.orders?.data);
+    bottomSheetModalRef.current?.dismiss();
+  };
+
+  const Item = ({order, i}) => (
+    <>
+      <OrderCard
+        onPress={() => {
+          navigation.navigate('ViewOrder', {orderDetail: order});
         }}
-        placeholder="All"
-        label="Filter"
-        getNullval
-        onDonePress={() => {}}
-      />
-      {allOrders.length > 0
-        ? allOrders.map((order, i) => (
-            <OrderCard style={getColor(order.type)} key={i}>
-              <OrderDate>{order.order_date}</OrderDate>
-              <OrderID>{order.order_id}</OrderID>
-              <OrderAmount>${order.order_amount}</OrderAmount>
-              <OrderStatus>{order.order_status}</OrderStatus>
-              <OrderView
-                onPress={() => {
-                  navigation.navigate('OrdersScreen', {
-                    screen: 'ViewOrder',
-                  });
+        style={{backgroundColor: ThemeColor.whiteColor}}
+        key={i}>
+        <OrderDate>{moment(order.date).format('d/M/Y H:m a')}</OrderDate>
+        <OrderID>
+          {/* <Text style={{fontWeight: 'bold'}}>Order Id:</Text>{' '} */}
+          {order.orderNumber}
+        </OrderID>
+        <Text style={{color: '#000', marginTop: 8}}>
+          {order.shipping.firstname + ' ' + order.shipping.lastname}
+        </Text>
+        <OrderStatus>{order.shipping.email}</OrderStatus>
+        <OrderStatus>{order.shipping.phone}</OrderStatus>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+          }}>
+          <View
+            style={{flexDirection: 'row', alignItems: 'center', marginTop: 8}}>
+            <Text style={{fontSize: 10, marginRight: 8}}>PAYMENT</Text>
+            <View
+              style={{
+                ...styles.orderStatus,
+                backgroundColor: getColor(order.paymentStatus),
+              }}>
+              <Text style={{color: ThemeColor.whiteColor, fontSize: 12}}>
+                {order.paymentStatus.toUpperCase()}
+              </Text>
+            </View>
+          </View>
+          <View style={{flexDirection: 'row', alignItems: 'center'}}>
+            <Text style={{fontSize: 10, marginRight: 8}}>SHIPPING</Text>
+            <View
+              style={{
+                ...styles.orderStatus,
+                backgroundColor: getColor(order.shippingStatus),
+              }}>
+              <Text style={{color: ThemeColor.whiteColor, fontSize: 12}}>
+                {order.shippingStatus.toUpperCase()}
+              </Text>
+            </View>
+          </View>
+        </View>
+      </OrderCard>
+    </>
+  );
+
+  const renderItem = ({item, i}) => <Item order={item} i={i} />;
+
+  if (loading) {
+    return <AppLoader />;
+  }
+
+  return (
+    <BottomSheetModalProvider>
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+        }}>
+        <Input
+          containerStyle={{
+            height: 70,
+            width: '85%',
+          }}
+          inputContainerStyle={styles.inputStyle}
+          label=""
+          value={inpvalue}
+          onChangeText={handleinpiut}
+          placeholder="Search Here"
+          leftIcon={() => <Icon name="search" color="gray" size={16} />}
+          leftIconContainerStyle={{marginLeft: 15}}
+        />
+        <TouchableOpacity
+          style={{
+            width: 50,
+            height: 50,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+          onPress={() => handlePresentModalPress()}>
+          <Icon name="filter" color="gray" size={30} />
+        </TouchableOpacity>
+      </View>
+      <OrdersWrapper>
+        <FlatList
+          initialNumToRender={10}
+          keyboardShouldPersistTaps="always"
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          data={AllOrders}
+          renderItem={renderItem}
+          ListEmptyComponent={() => (
+            <View>
+              <Text
+                style={{
+                  fontSize: 16,
+                  alignSelf: 'center',
+                  color: 'grey',
                 }}>
-                <Text>Details</Text>
-              </OrderView>
-            </OrderCard>
-          ))
-        : null}
-    </OrdersWrapper>
+                No Records Found
+              </Text>
+            </View>
+          )}
+        />
+        <BottomSheetModal
+          // enableDismissOnClose={false}
+          ref={bottomSheetModalRef}
+          snapPoints={snapPoints}
+          onChange={handleSheetChanges}
+          containerStyle={{backgroundColor: 'rgba(0, 0, 0, 0.5)'}}
+          style={{flex: 1, elevation: 10, paddingHorizontal: 15}}>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <Text style={{fontSize: 16}}>Filter</Text>
+            <CustomPicker
+              iosSelect
+              pickerKey="label"
+              pickerVal="value"
+              androidPickerData={picker}
+              iosPickerData={picker}
+              selectedValue={shippingstatus}
+              pickerValChange={val => {
+                handleFilter(val);
+              }}
+              placeholder="All"
+              label="Shpping Status"
+              getNullval
+              onDonePress={() => {}}
+            />
+            <CustomPicker
+              iosSelect
+              pickerKey="label"
+              pickerVal="value"
+              androidPickerData={paymentPicker}
+              iosPickerData={paymentPicker}
+              selectedValue={paymentstatus}
+              pickerValChange={val => {
+                handlePaymentFilter(val);
+              }}
+              placeholder="All"
+              label="Payment Status"
+              getNullval
+              onDonePress={() => {}}
+            />
+            <Text
+              style={{fontSize: 16, fontWeight: 'bold'}}
+              fontSize={18}
+              color={ThemeColor.gray}>
+              From
+            </Text>
+            <View style={styles.picker}>
+              <CustomDatePicker
+                // heading="From"
+                fieldname={'From'}
+                mode={'date'}
+                answer={startDate}
+                placeholder={'Select Date'}
+                pickerStyle={styles.pickerStyle}
+                onChange={handleDate}
+                vc={'#000'}
+                phc={'lightgray'}
+              />
+            </View>
+            <Text
+              style={{fontSize: 16, fontWeight: 'bold', marginTop: 15}}
+              color={ThemeColor.gray}>
+              To
+            </Text>
+            <View style={styles.picker}>
+              <CustomDatePicker
+                // heading="To"+
+                fieldname={'To'}
+                mode={'date'}
+                answer={endDate}
+                placeholder={'Select Date'}
+                pickerStyle={styles.pickerStyle}
+                onChange={handleDate}
+                vc={'#000'}
+                phc={'lightgray'}
+                mindate={startDate}
+              />
+            </View>
+
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-around',
+                marginTop: 15,
+              }}>
+              <TouchableOpacity
+                onPress={() => bottomSheetModalRef.current?.dismiss()}
+                style={styles.cancelBtn}>
+                <Text style={{color: '#fff', fontSize: 16}}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => applyFilter()}
+                style={styles.filterBtn}>
+                <Text style={{color: '#fff', fontSize: 16}}>Apply Filter</Text>
+              </TouchableOpacity>
+            </View>
+            {paymentstatus || shippingstatus || startDate || endDate ? (
+              <TouchableOpacity
+                onPress={() => handleClear()}
+                style={{
+                  marginTop: 5,
+                  alignSelf: 'center',
+                  width: '45%',
+                  paddingVertical: 10,
+                  backgroundColor: ThemeColor.grayColor,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  borderRadius: 8,
+                }}>
+                <Text style={{color: '#fff', fontSize: 16}}>Clear Filter</Text>
+              </TouchableOpacity>
+            ) : (
+              ''
+            )}
+          </ScrollView>
+        </BottomSheetModal>
+      </OrdersWrapper>
+    </BottomSheetModalProvider>
   );
 };
 
 export default AllOrderView;
+const styles = StyleSheet.create({
+  pickerStyle: {
+    backgroundColor: 'transparent',
+    borderRadius: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    // borderWidth: 1,
+    borderRadius: 3,
+    height: 38,
+    // width: '100%',
+    // marginBottom: 8,
+    // marginTop: 12,
+  },
+  inputStyle: {
+    borderBottomWidth: 0,
+    borderBottomColor: 'black',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+  },
+  filterBtn: {
+    width: '45%',
+    paddingVertical: 10,
+    backgroundColor: ThemeColor.persianGreen,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  cancelBtn: {
+    width: '45%',
+    backgroundColor: ThemeColor.redColor,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
+    paddingVertical: 10,
+  },
+  picker: {
+    width: '100%',
+    // borderWidth: 1,
+    borderBottomWidth: 1,
+    borderBottomColor: ThemeColor.gray,
+    paddingLeft: 10,
+    borderRadius: 3,
+  },
+  orderStatus: {
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: 3,
+  },
+});

@@ -11,7 +11,7 @@ export const OrderViewCard = styled.View`
 `;
 export const OrderViewCardTitle = styled.Text`
   font-size: 16px;
-  font-weight: bold
+  font-weight: bold;
   text-align: center;
   color: ${Colors.primaryColor};
   margin-bottom: 10px;

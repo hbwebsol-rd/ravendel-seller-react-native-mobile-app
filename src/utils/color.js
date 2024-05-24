@@ -1,6 +1,7 @@
 const ThemeColor = {
   primaryColor: '#154050',
   deleteColor: '#b71c1c',
+  orangeColor: 'orange',
   darkPrimaryColor: '#088178',
   lightestPrimaryColor: '#F8FAF9',
   splashBackgroundColor: '#F5F5F5',
@@ -8,6 +9,7 @@ const ThemeColor = {
   lightGreen: '#DCF0EF',
   gray: '#6E6E6E',
   green: '#1FAD08',
+  persianGreen: '#00A693',
   secondaryColor: 'rgb(238,238,238)',
   themeOrangeColor: '#000000',
   primaryTextColor: 'rgb(37, 150, 190)',
