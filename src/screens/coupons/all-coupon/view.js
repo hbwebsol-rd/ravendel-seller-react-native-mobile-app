@@ -1,5 +1,5 @@
 import React from 'react';
-import {Alert, Text} from 'react-native';
+import {Alert, FlatList, Text} from 'react-native';
 import {
   CouponCardWrapper,
   CouponCard,
@@ -57,86 +57,109 @@ const AllCouponsView = ({navigation}) => {
 
   const coupons = data.coupons.data;
 
+  const Item = ({coupon, i}) => (
+    <>
+      <CouponCard key={i}>
+        <CouponCardBody
+          Expired={
+            moment(coupon.expire).format('l') < moment(new Date()).format('l')
+          }>
+          <CouponCode>{coupon.code}</CouponCode>
+          <CouponCardTitle>
+            {coupon.discount_type === 'precantage-discount'
+              ? `${coupon.discount_value}%`
+              : null}
+            {coupon.discount_type === 'amount-discount'
+              ? `$${coupon.discount_value}`
+              : null}{' '}
+            off
+          </CouponCardTitle>
+        </CouponCardBody>
+        <CouponCardFooter
+          Expired={
+            moment(coupon.expire).format('l') < moment(new Date()).format('l')
+          }>
+          <ValidUntil
+            Expired={
+              moment(coupon.expire).format('l') < moment(new Date()).format('l')
+            }>
+            {moment(coupon.expire).format('l') < moment(new Date()).format('l')
+              ? `Expired: ${moment(coupon.expire).format('LL')}`
+              : `Valid until: ${moment(coupon.expire).format('LL')}`}
+          </ValidUntil>
+          <CouponCardFooterAction>
+            <CouponCardFooterActionBtn
+              onPress={() => {
+                navigation.navigate('CouponScreen', {
+                  screen: 'EditCoupon',
+                  params: {singleCoupon: coupon},
+                });
+              }}>
+              <Icon name="pencil" size={15} color="#000" />
+            </CouponCardFooterActionBtn>
+            <CouponCardFooterActionBtn
+              onPress={() => {
+                Alert.alert(
+                  'Are you sure?',
+                  '',
+                  [
+                    {
+                      text: 'Cancel',
+                      style: 'cancel',
+                    },
+                    {
+                      text: 'OK',
+                      onPress: () =>
+                        deleteCoupon({
+                          variables: {id: coupon.id},
+                        }),
+                    },
+                  ],
+                  {cancelable: false},
+                );
+              }}>
+              <Icon name="trash" size={15} color={ThemeColor.deleteColor} />
+            </CouponCardFooterActionBtn>
+          </CouponCardFooterAction>
+        </CouponCardFooter>
+      </CouponCard>
+    </>
+  );
+
+  const renderItem = ({item, i}) => <Item coupon={item} i={i} />;
+
   return (
     <MainContainer>
       <CouponCardWrapper>
         {deleteLoading ? <AppLoader /> : null}
-        {coupons.length
-          ? coupons.map((coupon, i) => (
-              <CouponCard key={i}>
-                <CouponCardBody
-                  Expired={
-                    moment(coupon.expire).format('l') <
-                    moment(new Date()).format('l')
-                  }>
-                  <CouponCode>{coupon.code}</CouponCode>
-                  <CouponCardTitle>
-                    {coupon.discount_type === 'precantage-discount'
-                      ? `${coupon.discount_value}%`
-                      : null}
-                    {coupon.discount_type === 'amount-discount'
-                      ? `$${coupon.discount_value}`
-                      : null}{' '}
-                    off
-                  </CouponCardTitle>
-                </CouponCardBody>
-                <CouponCardFooter
-                  Expired={
-                    moment(coupon.expire).format('l') <
-                    moment(new Date()).format('l')
-                  }>
-                  <ValidUntil
-                    Expired={
-                      moment(coupon.expire).format('l') <
-                      moment(new Date()).format('l')
-                    }>
-                    {moment(coupon.expire).format('l') <
-                    moment(new Date()).format('l')
-                      ? `Expired: ${moment(coupon.expire).format('LL')}`
-                      : `Valid until: ${moment(coupon.expire).format('LL')}`}
-                  </ValidUntil>
-                  <CouponCardFooterAction>
-                    <CouponCardFooterActionBtn
-                      onPress={() => {
-                        navigation.navigate('CouponScreen', {
-                          screen: 'EditCoupon',
-                          params: {singleCoupon: coupon},
-                        });
-                      }}>
-                      <Icon name="pencil" size={15} color="#000" />
-                    </CouponCardFooterActionBtn>
-                    <CouponCardFooterActionBtn
-                      onPress={() => {
-                        Alert.alert(
-                          'Are you sure?',
-                          '',
-                          [
-                            {
-                              text: 'Cancel',
-                              style: 'cancel',
-                            },
-                            {
-                              text: 'OK',
-                              onPress: () =>
-                                deleteCoupon({
-                                  variables: {id: coupon.id},
-                                }),
-                            },
-                          ],
-                          {cancelable: false},
-                        );
-                      }}>
-                      <Icon
-                        name="trash"
-                        size={15}
-                        color={ThemeColor.deleteColor}
-                      />
-                    </CouponCardFooterActionBtn>
-                  </CouponCardFooterAction>
-                </CouponCardFooter>
-              </CouponCard>
-            ))
-          : null}
+        {coupons.length ? (
+          <>
+            <FlatList
+              initialNumToRender={10}
+              keyboardShouldPersistTaps="always"
+              showsVerticalScrollIndicator={false}
+              // refreshControl={
+              //   <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              // }
+              data={coupons}
+              renderItem={renderItem}
+              ListEmptyComponent={() => (
+                <View>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      alignSelf: 'center',
+                      color: 'grey',
+                    }}>
+                    No Records Found
+                  </Text>
+                </View>
+              )}
+            />
+          </>
+        ) : (
+          ''
+        )}
       </CouponCardWrapper>
     </MainContainer>
   );

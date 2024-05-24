@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  FlatList,
 } from 'react-native';
 import AppHeader from '../components/header';
 import FabBtn from '../components/fab-btn';
@@ -38,6 +39,58 @@ const AllGroupScreen = ({navigation}) => {
     deleteGroup(id);
   };
 
+  const Item = ({grp, i}) => (
+    <>
+      <View style={styles.groupcard} key={i}>
+        <View style={styles.groupHeader}>
+          <Text style={styles.groupName}>{grp.title}</Text>
+          <View style={styles.groupActionWrapper}>
+            <TouchableOpacity
+              style={styles.groupActionBtn}
+              onPress={() => {
+                navigation.navigate('AddGroup', {id: grp.id});
+              }}>
+              <Icon name="pencil" size={15} color="#000" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.groupActionBtn}
+              onPress={() => {
+                Alert.alert(
+                  'Are you sure?',
+                  '',
+                  [
+                    {
+                      text: 'Cancel',
+                      style: 'cancel',
+                    },
+                    {
+                      text: 'OK',
+                      onPress: () =>
+                        deleteGroupFun({
+                          variables: {deleteGroupId: grp.id},
+                        }),
+                    },
+                  ],
+                  {cancelable: false},
+                );
+              }}>
+              <Icon name="trash" size={15} color={ThemeColor.deleteColor} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {grp.productIds && grp.productIds.length ? (
+          <View style={styles.groupValWrapper}>
+            <Text style={styles.groupValTitle}>Products</Text>
+            <Text style={styles.groupValTitle}>{grp.productIds.length}</Text>
+          </View>
+        ) : null}
+      </View>
+    </>
+  );
+
+  const renderItem = ({item, i}) => <Item grp={item} i={i} />;
+
   return (
     <View style={styles.container}>
       <AppHeader title="Group Product" navigation={navigation} />
@@ -47,70 +100,34 @@ const AllGroupScreen = ({navigation}) => {
 
         {data && data.groups && (
           <>
-            {data.groups.data.map((grp, i) => (
-              <View style={styles.groupcard} key={i}>
-                <View style={styles.groupHeader}>
-                  <Text style={styles.groupName}>{grp.title}</Text>
-                  <View style={styles.groupActionWrapper}>
-                    <TouchableOpacity
-                      style={styles.groupActionBtn}
-                      onPress={() => {
-                        navigation.navigate('GroupScreen', {
-                          screen: 'AddGroup',
-                          params: {id: grp.id},
-                        });
-                      }}>
-                      <Icon name="pencil" size={15} color="#000" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.groupActionBtn}
-                      onPress={() => {
-                        Alert.alert(
-                          'Are you sure?',
-                          '',
-                          [
-                            {
-                              text: 'Cancel',
-                              style: 'cancel',
-                            },
-                            {
-                              text: 'OK',
-                              onPress: () =>
-                                deleteGroupFun({
-                                  variables: {deleteGroupId: grp.id},
-                                }),
-                            },
-                          ],
-                          {cancelable: false},
-                        );
-                      }}>
-                      <Icon
-                        name="trash"
-                        size={15}
-                        color={ThemeColor.deleteColor}
-                      />
-                    </TouchableOpacity>
-                  </View>
+            <FlatList
+              initialNumToRender={10}
+              keyboardShouldPersistTaps="always"
+              showsVerticalScrollIndicator={false}
+              // refreshControl={
+              //   <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              // }
+              data={data.groups.data}
+              renderItem={renderItem}
+              ListEmptyComponent={() => (
+                <View>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      alignSelf: 'center',
+                      color: 'grey',
+                    }}>
+                    No Records Found
+                  </Text>
                 </View>
-
-                {grp.productIds && grp.productIds.length ? (
-                  <View style={styles.groupValWrapper}>
-                    <Text style={styles.groupValTitle}>Products</Text>
-                    <Text style={styles.groupValTitle}>
-                      {grp.productIds.length}
-                    </Text>
-                  </View>
-                ) : null}
-              </View>
-            ))}
+              )}
+            />
           </>
         )}
       </ScrollView>
       <FabBtn
         onPressFunc={() => {
-          navigation.navigate('GroupScreen', {
-            screen: 'AddGroup',
-          });
+          navigation.navigate('AddGroup');
         }}
       />
     </View>
