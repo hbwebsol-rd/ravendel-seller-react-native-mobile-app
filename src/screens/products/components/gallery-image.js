@@ -10,6 +10,7 @@ const GalleryImage = ({images, removeImage, addImage}) => {
       {images.length
         ? images.map((img, i) => (
             <GalleryImageCard key={i}>
+              {console.log(img)}
               <Image source={{uri: img}} style={{width: 70, height: 70}} />
               <GalleryImageRemove
                 onPress={() => {
@@ -20,9 +21,9 @@ const GalleryImage = ({images, removeImage, addImage}) => {
             </GalleryImageCard>
           ))
         : null}
-      <GalleryImageCard>
-        <GalleryImageAdd onPress={addImage}>
-          <Icon name="plus" color="#3a3a3a" size={25} />
+      <GalleryImageCard onPress={addImage}>
+        <GalleryImageAdd>
+          <Icon name="plus" color="#3a3a3a" onPress={addImage} size={25} />
         </GalleryImageAdd>
       </GalleryImageCard>
     </GalleryImageWrapper>
@@ -34,7 +35,7 @@ const GalleryImageWrapper = styled.View`
   flex-wrap: wrap;
   padding: 10px;
 `;
-const GalleryImageCard = styled.View`
+const GalleryImageCard = styled.TouchableOpacity`
   width: 80px;
   height: 80px;
   background-color: #eee;

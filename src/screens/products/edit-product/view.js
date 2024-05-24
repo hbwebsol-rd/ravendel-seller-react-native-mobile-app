@@ -8,7 +8,7 @@ import {
   AddFormSections,
 } from '../add-product/styles';
 import {Input, CheckBox, Button, BottomSheet, ListItem} from '@rneui/themed';
-import {isEmpty} from '../../../utils/helper';
+import {getCheckedIds, getDiscount, isEmpty} from '../../../utils/helper';
 import BottomDivider from '../../components/bottom-divider';
 import CustomPicker from '../../components/custom-picker';
 import * as ImagePicker from 'react-native-image-picker';
@@ -18,7 +18,7 @@ import GalleryImage from '../components/gallery-image';
 import FeaturedImage from '../components/feature-image';
 import Accordion from '../../components/accordion';
 import CategoriesSelections from '../../components/categories-selection';
-import Attributes from '../components/attributes';
+import Attributes from '../components/attributesold';
 import AppLoader from '../../components/loader';
 import URLComponents from '../../components/urlComponents';
 import TaxComponent from '../components/tax';
@@ -26,6 +26,8 @@ import ShippingComponent from '../components/shipping';
 import MetaInfoComponents from '../components/meta-info';
 import InventoryComponents from '../components/inventory';
 import Specification from '../components/specification';
+import {Text} from '@rneui/base';
+import EditCategoriesComponent from '../../components/edit-category';
 
 /* =============================Upload Featured Image and Gallery Options============================= */
 const options = {
@@ -79,6 +81,8 @@ const EditProductView = ({
     variation_master,
     shipping,
     tax_class,
+    short_description,
+    categoryTree,
   } = editProductDetail;
 
   /* =============================Upload Featured Image and Gallery Image Function============================= */
@@ -92,11 +96,11 @@ const EditProductView = ({
     } else {
       // const source = { uri: 'data:image/jpeg;base64,' + response.data };
       if (uploadImageOf === 'feature_image') {
-        onFeaturedImageAdd(response.uri);
+        onFeaturedImageAdd(response.assets[0].uri);
         inputChange('update_feature_image', response.uri);
       }
       if (uploadImageOf === 'gallery_image') {
-        onGalleryImagesAdd(response.uri);
+        onGalleryImagesAdd(response.assets[0].uri);
       }
     }
     setUploadModal(false);
@@ -107,9 +111,7 @@ const EditProductView = ({
     {
       title: 'Take Photo',
       onPress: () => {
-        ImagePicker.launchCamera(options, response => {
-          UploadImage(response);
-        });
+        requestCameraPermission();
       },
     },
     {
@@ -128,6 +130,33 @@ const EditProductView = ({
     },
   ];
 
+  const requestCameraPermission = async () => {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+          title: 'App Camera Permission',
+          message: 'App needs access to your camera',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        },
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        ImagePicker.launchCamera(options, response => {
+          UploadImage(response);
+        });
+      } else {
+        Alert.alert('Camera permission denied', '', [
+          {
+            text: 'Ok',
+            style: 'cancel',
+          },
+        ]);
+      }
+    } catch (err) {
+      console.warn(err);
+    }
+  };
   return (
     <AddWrapper>
       {Attributes.loading ? <AppLoader /> : null}
@@ -165,6 +194,14 @@ const EditProductView = ({
             data={description}
             onEditorChange={value => inputChange('description', value)}
           />
+          <Input
+            labelStyle={{marginTop: 15}}
+            inputContainerStyle={{height: 50}}
+            style={{marginTop: 10}}
+            label="Short Description"
+            value={short_description}
+            onChangeText={value => inputChange('short_description', value)}
+          />
         </AddFormSections>
 
         {/* =================================Featured Image============================== */}
@@ -201,9 +238,13 @@ const EditProductView = ({
             type="number"
             label="Price"
             value={pricing.price.toString()}
-            onChangeText={value =>
-              objectInputChange('pricing', 'price', parseInt(value))
-            }
+            onChangeText={value => {
+              if (value === '') {
+                objectInputChange('pricing', 'price', '');
+              } else {
+                objectInputChange('pricing', 'price', parseInt(value));
+              }
+            }}
           />
 
           <Input
@@ -211,19 +252,62 @@ const EditProductView = ({
             type="number"
             label="Sale Price"
             value={pricing.sellprice.toString()}
-            onChangeText={value =>
-              objectInputChange('pricing', 'sellprice', parseInt(value))
-            }
+            onChangeText={value => {
+              console.log(value, parseInt(value));
+              if (value === '') {
+                objectInputChange('pricing', 'sellprice', '');
+              } else {
+                objectInputChange('pricing', 'sellprice', parseInt(value));
+                if (pricing.price > pricing.sellprice) {
+                  objectInputChange(
+                    'pricing',
+                    'discountPercentage',
+                    getDiscount(pricing.price, pricing.sellprice),
+                  );
+                }
+              }
+            }}
           />
+          <Text style={{fontWeight: 'bold', marginLeft: 10}}>
+            Discount Percentage :{' '}
+            {pricing.price > pricing.sellprice
+              ? getDiscount(pricing.price, pricing.sellprice) + '%'
+              : 'No Discount'}
+          </Text>
         </AddFormSections>
 
         {/* =================================Product Category============================== */}
         {allCategories.length > 0 ? (
           <SafeAreaView style={{flex: 1}}>
-            <CategoriesSelections
+            {/* <CategoriesSelections
               data={allCategories}
               selectedItems={categoryId}
               onCategoryChange={items => inputChange('categoryId', items)}
+            /> */}
+            <EditCategoriesComponent
+              data={allCategories}
+              selectedCategoriesTree={categoryTree}
+              selectedCategories={categoryId}
+              onCategoryChange={items => {
+                if (items && items?.length > 0) {
+                  const checkedIds = getCheckedIds(items);
+                  inputChange('categoryId', checkedIds);
+                  inputChange('categoryTree', items);
+                  // setProduct({
+                  //   ...product,
+                  //   categoryId: checkedIds,
+                  //   categoryTree: items,
+                  // });
+                } else {
+                  inputChange('categoryId', []);
+                  inputChange('categoryTree', []);
+                  // setProduct({
+                  //   ...product,
+                  //   categoryId: [],
+                  //   categoryTree: [],
+                  // });
+                }
+              }}
             />
           </SafeAreaView>
         ) : null}
@@ -259,12 +343,6 @@ const EditProductView = ({
                 data={allAttributes}
                 attribute={attribute}
                 variant={variant}
-                // onCombinationUpdate={combinations =>
-                //   inputChange('combinations', combinations)
-                // }
-                // onAttrAndVariant={(variantItem, attributeItem) => {
-                //   onAttrAndVariantParent(variantItem, attributeItem);
-                // }}
                 groups={groups}
                 setGroups={setGroups}
               />

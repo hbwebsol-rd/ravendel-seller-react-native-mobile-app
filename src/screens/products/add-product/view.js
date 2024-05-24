@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {View} from 'react-native';
+import {PermissionsAndroid, View} from 'react-native';
 import {
   AddWrapper,
   TopBar,
@@ -17,13 +17,16 @@ import GalleryImage from '../components/gallery-image';
 import FeaturedImage from '../components/feature-image';
 import Accordion from '../../components/accordion';
 import CategoriesSelections from '../../components/categories-selection';
-import Attributes from '../components/attributes';
 import TaxComponent from '../components/tax';
 import ShippingComponent from '../components/shipping';
 import MetaInfoComponents from '../components/meta-info';
 import InventoryComponents from '../components/inventory';
 import URLComponents from '../../components/urlComponents';
 import Specification from '../components/specification';
+import {Text} from '@rneui/base';
+import {getCheckedIds, getDiscount} from '../../../utils/helper';
+import ImgToBase64 from 'react-native-image-base64';
+import EditCategoriesComponent from '../../components/edit-category';
 
 /* =============================Upload Featured Image and Gallery Options============================= */
 const options = {
@@ -56,6 +59,7 @@ const AddProductView = ({
   onAttrAndVariantParent,
   groups,
   setGroups,
+  setAddProductDetail,
 }) => {
   /* =============================States============================= */
   const [uploadModal, setUploadModal] = useState(false);
@@ -73,23 +77,30 @@ const AddProductView = ({
       console.log(response, ' img res');
       // const source = {uri: 'data:image/jpeg;base64,' + response.data};
       // console.log('image source', source);
-      const image = {
-        uri: response.assets[0].uri,
-        type: response.assets[0].type,
-        name: response.assets[0].uri.substr(
-          response.assets[0].uri.lastIndexOf('/') + 1,
-        ),
-      };
-      console.log('response.uri', response.uri);
-      console.log('image', image);
 
-      if (uploadImageOf === 'feautred_image') {
-        featureImageAdd(image);
-      }
+      ImgToBase64.getBase64String(response.assets[0].uri).then(base64String => {
+        const image = {
+          uri: response.assets[0].uri,
+          type: response.assets[0].type,
+          name: response.assets[0].uri.substr(
+            response.assets[0].uri.lastIndexOf('/') + 1,
+          ),
+          file: 'data:image/png;base64' + base64String,
+        };
+        console.log('response.uri', response.uri);
+        console.log('image', image);
 
-      if (uploadImageOf === 'gallery_image') {
-        galleyImageAdd(image);
-      }
+        if (uploadImageOf === 'feautred_image') {
+          featureImageAdd(image);
+        }
+
+        if (uploadImageOf === 'gallery_image') {
+          galleyImageAdd(image);
+        }
+        // gImage.push({
+        //   file: 'base64String',
+        // });
+      });
     }
     setUploadModal(false);
   };
@@ -99,15 +110,17 @@ const AddProductView = ({
     {
       title: 'Take Photo',
       onPress: () => {
-        ImagePicker.launchCamera(options, response => {
-          UploadImage(response);
-        });
+        requestCameraPermission();
+        // ImagePicker.launchCamera(options, response => {
+        //   UploadImage(response);
+        // });
       },
     },
     {
       title: 'Choose from library',
       onPress: () => {
         ImagePicker.launchImageLibrary(options, response => {
+          console.log(response, ' image picker res');
           UploadImage(response);
         });
       },
@@ -119,6 +132,34 @@ const AddProductView = ({
       onPress: () => setUploadModal(false),
     },
   ];
+
+  const requestCameraPermission = async () => {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+          title: 'App Camera Permission',
+          message: 'App needs access to your camera',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        },
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        ImagePicker.launchCamera(options, response => {
+          UploadImage(response);
+        });
+      } else {
+        Alert.alert('Camera permission denied', '', [
+          {
+            text: 'Ok',
+            style: 'cancel',
+          },
+        ]);
+      }
+    } catch (err) {
+      console.warn(err);
+    }
+  };
 
   const {
     name,
@@ -139,6 +180,8 @@ const AddProductView = ({
     gallery_image,
     attribute,
     variant,
+    short_description,
+    categoryTree,
   } = addProductDetail;
   return (
     <AddWrapper>
@@ -184,6 +227,15 @@ const AddProductView = ({
           <Editor
             data={description}
             onEditorChange={value => inputChange('description', value)}
+          />
+
+          <Input
+            labelStyle={{marginTop: 15}}
+            inputContainerStyle={{height: 50}}
+            style={{marginTop: 10}}
+            label="Short Description"
+            value={short_description}
+            onChangeText={value => inputChange('short_description', value)}
           />
         </AddFormSections>
 
@@ -239,17 +291,55 @@ const AddProductView = ({
                 objectInputChange('pricing', 'sellprice', '');
               } else {
                 objectInputChange('pricing', 'sellprice', parseInt(value));
+                if (pricing.price > pricing.sellprice) {
+                  objectInputChange(
+                    'pricing',
+                    'discountPercentage',
+                    getDiscount(pricing.price, pricing.sellprice),
+                  );
+                }
               }
             }}
           />
+
+          <Text style={{fontWeight: 'bold', marginLeft: 10}}>
+            Discount Percentage :{' '}
+            {pricing.price > pricing.sellprice
+              ? getDiscount(pricing.price, pricing.sellprice) + '%'
+              : 'No Discount'}
+          </Text>
         </AddFormSections>
         {/* =================================Product Category============================== */}
-        <CategoriesSelections
+        {/* <CategoriesSelections
           data={categories}
           selectedItems={categoryId}
           onCategoryChange={items => inputChange('categoryId', items)}
-        />
+        /> */}
 
+        <EditCategoriesComponent
+          data={categories}
+          selectedCategoriesTree={categoryTree}
+          selectedCategories={categoryId}
+          onCategoryChange={items => {
+            if (items && items?.length > 0) {
+              console.log(items, ' ioio');
+              const checkedIds = getCheckedIds(items);
+              console.log(checkedIds);
+
+              setAddProductDetail({
+                ...addProductDetail,
+                categoryId: checkedIds,
+                categoryTree: items,
+              });
+            } else {
+              setAddProductDetail({
+                ...addProductDetail,
+                categoryId: [],
+                categoryTree: [],
+              });
+            }
+          }}
+        />
         {/* =================================Featured Product============================== */}
         <AddFormSections>
           <CheckBox
@@ -262,17 +352,7 @@ const AddProductView = ({
         {/* =================================Attributes============================== */}
         <AddFormSections>
           <AddFormSectionTitle>Attributes</AddFormSectionTitle>
-          {/* <Attributes
-            data={attributes}
-            attribute={attribute}
-            variant={variant}
-            onCombinationUpdate={combinations =>
-              inputChange('combinations', combinations)
-            }
-            onAttrAndVariant={(variantItem, attributeItem) => {
-              onAttrAndVariantParent(variantItem, attributeItem);
-            }}
-          /> */}
+
           <Specification
             data={attributes}
             attribute={attribute}

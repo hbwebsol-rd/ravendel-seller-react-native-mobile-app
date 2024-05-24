@@ -12,23 +12,35 @@ import {GET_ATTRIBUTES} from '../../../queries/attributesQueries';
 import {GET_TAX} from '../../../queries/taxQueries';
 import {GET_SHIPPING} from '../../../queries/shippingQueries';
 import AppLoader from '../../components/loader';
-import {useMutation, useQuery} from '@apollo/client';
-import {unflatten, isEmpty, getUpdatedUrl} from '../../../utils/helper';
+import {empty, useMutation, useQuery} from '@apollo/client';
+import {
+  unflatten,
+  isEmpty,
+  getUpdatedUrl,
+  containsOnlyNumbers,
+  convertData,
+  BASE_URL,
+} from '../../../utils/helper';
 import {ADD_PRODUCT} from '../../../queries/productQueries';
 import {GraphqlError, GraphqlSuccess} from '../../components/garphqlMessages';
 import AwesomeAlert from 'react-native-awesome-alerts';
 import {mutation, query} from '../../../utils/service';
 import {Picker} from '@react-native-picker/picker';
+import {useDispatch} from 'react-redux';
+import {ALERT_ERROR, ALERT_SUCCESS} from '../../../store/reducer/alert';
+import Multiselect from '../../components/multiselect';
 
 var addObject = {
   name: 'Test',
   description: 'test',
   url: '',
   categoryId: [],
+  categoryTree: [],
   brand: null,
   pricing: {
     price: 10,
     sellprice: 8,
+    discountPercentage: 0,
   },
   status: 'Draft',
   meta: {
@@ -55,23 +67,26 @@ var addObject = {
   gallery_image: [],
   attribute: [],
   variant: [],
-  short_description: 'NA',
+  short_description: '',
   custom_field: [],
 };
 
 const AddProductsScreen = ({navigation}) => {
+  const dispatch = useDispatch();
   const [addProduct, {loading: AddLoading}] = useMutation(ADD_PRODUCT, {
     onError: error => {
-      GraphqlError(error);
+      console.log(error, ' eerrr');
+      // GraphqlError(error);
     },
     onCompleted: data => {
       console.log(data, ' after add');
       // GraphqlSuccess('Added successfully');
-      setAddProductDetail(addObject);
-      navigation.navigate('ProductsScreen', {
-        screen: 'AllProduct',
-        params: {reload: true},
-      });
+      if (data.addProduct.success) {
+        setAddProductDetail(addObject);
+        navigation.navigate('AllProduct');
+      } else {
+        dispatch({type: ALERT_SUCCESS, payload: data.addProduct.message});
+      }
     },
   });
   const Categories = useQuery(GET_CATEGORIES);
@@ -91,13 +106,13 @@ const AddProductsScreen = ({navigation}) => {
   const [allShipppings, setAllShippings] = useState({});
   const [featuredImage, setFeaturedImage] = useState(null);
   const [galleryImages, setGalleryImages] = useState([]);
-  const [showAlert, setShowAlert] = useState(false);
-  const [validationMessage, setValidationMessage] = useState('');
+
   const [addProductDetail, setAddProductDetail] = useState({
     name: '',
     description: '',
     url: '',
     categoryId: [],
+    categoryTree: [],
     brand: null,
     pricing: {
       price: 0,
@@ -128,37 +143,10 @@ const AddProductsScreen = ({navigation}) => {
     gallery_image: [],
     attribute: [],
     variant: [],
-    short_description: 'NA',
+    short_description: '',
     custom_field: [],
   });
-  const convertData = data => {
-    const result = [];
 
-    // Create an object to store groups and their corresponding attributes
-    const groups = {};
-
-    // Iterate through the data
-    data.forEach(item => {
-      // Check if the group already exists in the groups object
-      if (!groups[item.group]) {
-        // If the group doesn't exist, create a new entry in the groups object
-        groups[item.group] = {
-          name: item.group,
-          attributes: [{key: item.key, value: item.value}],
-        };
-      } else {
-        // If the group exists, push the attribute to the existing group
-        groups[item.group].attributes.push({key: item.key, value: item.value});
-      }
-    });
-
-    // Convert the groups object to an array of values
-    for (const groupName in groups) {
-      result.push(groups[groupName]);
-    }
-
-    return result;
-  };
   const [groups, setGroups] = useState([
     {name: '', attributes: [{key: '', value: '', keyId: '', valueId: ''}]},
   ]);
@@ -168,7 +156,7 @@ const AddProductsScreen = ({navigation}) => {
         JSON.stringify(Categories.data.productCategories.data),
       );
       if (selectedCat && selectedCat.length) {
-        setAllCategories(unflatten(selectedCat));
+        setAllCategories(selectedCat);
       }
     }
   }, [Categories.data]);
@@ -239,6 +227,7 @@ const AddProductsScreen = ({navigation}) => {
   };
 
   const onValueChange = (name, value) => {
+    console.log(name, value, ' navl');
     setAddProductDetail({...addProductDetail, [name]: value});
   };
 
@@ -259,8 +248,10 @@ const AddProductsScreen = ({navigation}) => {
         },
         {
           text: 'OK',
-          onPress: () =>
-            setAddProductDetail({...addProductDetail, feautred_image: ''}),
+          onPress: () => {
+            setFeaturedImage('');
+            setAddProductDetail({...addProductDetail, feautred_image: ''});
+          },
         },
       ],
       {cancelable: false},
@@ -279,8 +270,10 @@ const AddProductsScreen = ({navigation}) => {
         {
           text: 'OK',
           onPress: () => {
+            var gi = galleryImages.filter(gallery_img => gallery_img !== img);
+            setGalleryImages(gi);
             var filterGalleryImages = addProductDetail.gallery_image.filter(
-              gallery_img => gallery_img !== img,
+              gallery_img => gallery_img.uri !== img,
             );
             addProductDetail.gallery_image = filterGalleryImages;
             setAddProductDetail({...addProductDetail});
@@ -306,7 +299,6 @@ const AddProductsScreen = ({navigation}) => {
 
   const isUrlExist = async url => {
     setLoader(true);
-    console.log(url, 'uuu');
     let updatedUrl = await mutation(GET_URL, {url: url}); //getUpdatedUrl('Product', url);
     setAddProductDetail({
       ...addProductDetail,
@@ -321,6 +313,29 @@ const AddProductsScreen = ({navigation}) => {
     setAddProductDetail({...addProductDetail});
   };
 
+  const filterTreeData = data => {
+    return data.reduce((acc, category) => {
+      const filteredCategory = {
+        id: category?.id,
+        name: category.name,
+        checked: category.checked,
+      };
+      if (category?.children && category?.children?.length > 0) {
+        filteredCategory.children = category?.children;
+      }
+
+      if (category?.checked) {
+        acc.push(filteredCategory);
+      } else if (category?.children && category?.children?.length > 0) {
+        filteredCategory.children = filterTreeData(category?.children);
+        if (filteredCategory.children.length > 0) {
+          acc.push(filteredCategory);
+        }
+      }
+
+      return acc;
+    }, []);
+  };
   const addProductSubmit = () => {
     const {
       name,
@@ -341,12 +356,24 @@ const AddProductsScreen = ({navigation}) => {
       attribute,
       variant,
       combinations,
+      gallery_image,
+      feautred_image,
+      categoryId,
     } = addProductDetail;
-    var CategoryIDs = addProductDetail.categoryId.map(cat => cat.id);
+    // var CategoryIDs = addProductDetail.categoryId.map(cat => cat.id);
     console.log(JSON.stringify(groups), 'grps');
 
     const result = [];
-    groups.forEach(group => {
+    emptyGroup = false;
+    groups.forEach((group, index) => {
+      if (
+        isEmpty(group.name) ||
+        isEmpty(group.attributes[index].keyId) ||
+        isEmpty(group.attributes[index].valueId)
+      ) {
+        emptyGroup = true;
+        return;
+      }
       group.attributes.forEach(attribute => {
         result.push({
           attributeId: attribute.keyId,
@@ -358,38 +385,50 @@ const AddProductsScreen = ({navigation}) => {
       });
     });
 
-    console.log(JSON.stringify(result), ' result of data');
+    // console.log(JSON.stringify(result), ' result of data');
 
     if (isEmpty(addProductDetail.name)) {
-      setValidationMessage('Name is Required');
-      setShowAlert(true);
+      dispatch({type: ALERT_ERROR, payload: 'Name is Required'});
       return;
-    } else if (isEmpty(CategoryIDs)) {
-      setValidationMessage('Category is Required');
-      setShowAlert(true);
+    } else if (emptyGroup) {
+      dispatch({type: ALERT_ERROR, payload: 'Specification is not selected'});
+      return;
+    } else if (isEmpty(categoryId)) {
+      dispatch({type: ALERT_ERROR, payload: 'Category is Required'});
       return;
     } else if (isEmpty(description)) {
-      setValidationMessage('Description is Required');
-      setShowAlert(true);
+      dispatch({type: ALERT_ERROR, payload: 'Description is Required'});
       return;
-    } else if (isEmpty(pricing)) {
-      setValidationMessage('Price is Required');
-      setShowAlert(true);
+    } else if (
+      isEmpty(pricing.price) ||
+      !containsOnlyNumbers(pricing.price) ||
+      pricing.price === 0
+    ) {
+      dispatch({type: ALERT_ERROR, payload: 'Price is Required'});
+      return;
+    } else if (
+      isEmpty(pricing.sellprice) ||
+      !containsOnlyNumbers(pricing.sellprice)
+    ) {
+      dispatch({type: ALERT_ERROR, payload: 'Sellprice is Required'});
       return;
     } else if (isEmpty(sku)) {
-      setValidationMessage('SKU is Required');
-      setShowAlert(true);
+      dispatch({type: ALERT_ERROR, payload: 'SKU is Required'});
       return;
     } else if (isEmpty(quantity)) {
-      setValidationMessage('Quantity is Required');
-      setShowAlert(true);
+      dispatch({type: ALERT_ERROR, payload: 'Quantity is Required'});
+      return;
+    } else if (isEmpty(shipping.shippingClass)) {
+      dispatch({type: ALERT_ERROR, payload: 'Shipping Class is Required'});
       return;
     }
+
+    const filteredData = filterTreeData(addProductDetail.categoryTree);
 
     var details = {
       name: name,
       url: url,
-      categoryId: CategoryIDs,
+      categoryId: categoryId,
       brand: brand,
       short_description: short_description,
       description: description,
@@ -407,8 +446,16 @@ const AddProductsScreen = ({navigation}) => {
       variant: variant,
       combinations: combinations,
       specifications: result,
+
+      categoryTree: filteredData,
     };
-    console.log('AddProductSubmit details', details);
+    if (feautred_image?.file) {
+      details.feature_image = [feautred_image];
+    }
+    if (!isEmpty(gallery_image)) {
+      details.gallery_image = gallery_image;
+    }
+    console.log('Product Payload', details);
     addProduct({variables: details});
   };
 
@@ -422,59 +469,92 @@ const AddProductsScreen = ({navigation}) => {
       <Text style={{fontSize: 15, marginLeft: 8, fontWeight: '600'}}>
         Clone Product
       </Text>
-      <Picker
-        style={{marginBottom: 10}}
-        selectedValue={product}
-        onValueChange={singleProduct => {
-          console.log(JSON.stringify(singleProduct.specifications), 'ivv');
-          const cvdata = convertData(singleProduct.specifications);
-          console.log(JSON.stringify(cvdata), ' cvdaata');
-          const newData = {
-            _id: singleProduct._id,
-            name: singleProduct.name,
-            description: singleProduct.description,
-            url: singleProduct.url,
-            categoryId: singleProduct.categoryId,
-            brand: singleProduct.brand.id,
-            pricing: {
-              price: singleProduct.pricing.price,
-              sellprice: singleProduct.pricing.sellprice,
-            },
-            status: singleProduct.status,
-            meta: {
-              description: singleProduct.meta.description,
-              keywords: singleProduct.meta.keywords,
-              title: singleProduct.meta.title,
-            },
-            shipping: {
-              depth: singleProduct.shipping.depth,
-              height: singleProduct.shipping.height,
-              shippingClass: singleProduct.shipping.shippingClass,
-              weight: singleProduct.shipping.weight,
-              width: singleProduct.shipping.width,
-            },
-            tax_class: singleProduct.taxClass,
-            feature_product: singleProduct.feature_product,
-            product_type: singleProduct.product_type,
-            quantity: singleProduct.quantity,
-            sku: singleProduct.sku,
-            feautred_image: singleProduct.feature_image,
-            gallery_image: singleProduct.gallery_image,
-            attribute: [],
-            variant: [],
-            short_description: 'NA',
-            custom_field: [],
-          };
-          setAddProductDetail(newData);
-          setProduct(singleProduct);
-          setGroups(cvdata);
-        }}>
-        <Picker.Item label="Select Key" value="" />
-        {allProducts.map(value => (
-          <Picker.Item key={value._id} label={value.name} value={value} />
-        ))}
-      </Picker>
-      {console.log(JSON.stringify(addProductDetail), ' adpoop')}
+      <Multiselect
+        inititalselect={product}
+        hmt={15}
+        heading={''}
+        height={35}
+        fieldname={'attribute'}
+        marginTop={10}
+        ibw={1}
+        inputBgColor="transparent"
+        // placeholderFont={FontStyle.fontRegular}
+        data={allProducts ?? []}
+        onchange={(name, singleProductid) => {
+          console.log(singleProductid, ' singp');
+          if (singleProductid) {
+            const singleProduct = allProducts.filter(
+              item => item._id === singleProductid,
+            )[0];
+            console.log(JSON.stringify(singleProduct.specifications), 'ivv');
+            const cvdata = singleProduct.specifications
+              ? convertData(singleProduct.specifications)
+              : [];
+            console.log(JSON.stringify(cvdata), ' cvdaata');
+            const newData = {
+              _id: singleProduct._id,
+              name: singleProduct.name,
+              description: singleProduct.description,
+              url: singleProduct.url,
+              categoryId: singleProduct.categoryId?.map(cat => cat.id),
+              categoryTree: singleProduct?.categoryTree || [],
+              brand: singleProduct.brand.id,
+              pricing: {
+                price: singleProduct.pricing.price,
+                sellprice: singleProduct.pricing.sellprice,
+              },
+              status: singleProduct.status,
+              meta: {
+                description: singleProduct.meta.description,
+                keywords: singleProduct.meta.keywords,
+                title: singleProduct.meta.title,
+              },
+              shipping: {
+                depth: singleProduct.shipping.depth,
+                height: singleProduct.shipping.height,
+                shippingClass: singleProduct.shipping.shippingClass,
+                weight: singleProduct.shipping.weight,
+                width: singleProduct.shipping.width,
+              },
+              tax_class: singleProduct.taxClass,
+              feature_product: singleProduct.feature_product,
+              product_type: singleProduct.product_type,
+              quantity: singleProduct.quantity,
+              sku: singleProduct.sku,
+              feautred_image: singleProduct.feature_image,
+              gallery_image: singleProduct.gallery_image,
+              attribute: [],
+              variant: [],
+              short_description: 'NA',
+              custom_field: [],
+            };
+            if (singleProduct.feature_image) {
+              setFeaturedImage(BASE_URL + singleProduct.feature_image);
+            }
+            if (singleProduct.gallery_image.length > 0) {
+              var allGalleryImage = singleProduct.gallery_image.map(
+                gallery => BASE_URL + gallery,
+              );
+              setGalleryImages(allGalleryImage);
+            }
+            setAddProductDetail(newData);
+            setProduct(singleProduct);
+            setGroups(cvdata);
+          }
+        }}
+        placeholder={'Select Product'}
+        // ibbw={1}
+        color="black"
+        // borderBottomColor={'black'}
+        padding={0}
+        searchenabled={true}
+        fs={15}
+        paddingLeft={0}
+        fontColr={'#707070'}
+        vzindex={21}
+        valueSchema={'_id'}
+      />
+
       <AddProductView
         navigation={navigation}
         addProductDetail={addProductDetail}
@@ -500,26 +580,7 @@ const AddProductsScreen = ({navigation}) => {
         }
         groups={groups}
         setGroups={setGroups}
-      />
-      <AwesomeAlert
-        show={showAlert}
-        showProgress={false}
-        title={validationMessage}
-        messageStyle={{display: 'none'}}
-        message={validationMessage}
-        closeOnTouchOutside={true}
-        closeOnHardwareBackPress={false}
-        showCancelButton={true}
-        showConfirmButton={false}
-        cancelText="Close"
-        // confirmText="Yes, delete it"
-        confirmButtonColor="#DD6B55"
-        onCancelPressed={() => {
-          hideAlert();
-        }}
-        // onConfirmPressed={() => {
-        //   this.hideAlert();
-        // }}
+        setAddProductDetail={setAddProductDetail}
       />
     </>
   );

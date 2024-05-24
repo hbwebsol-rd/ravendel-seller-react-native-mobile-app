@@ -12,10 +12,11 @@ import {GET_ATTRIBUTES} from '../../../queries/attributesQueries';
 import {GET_TAX} from '../../../queries/taxQueries';
 import {GET_SHIPPING} from '../../../queries/shippingQueries';
 import {
-  BASE_URL,
   unflatten,
   allPossibleCases,
   isEmpty,
+  convertData,
+  URL,
 } from '../../../utils/helper';
 import {GraphqlError, GraphqlSuccess} from '../../components/garphqlMessages';
 
@@ -50,7 +51,7 @@ const EditProductsScreen = ({route, navigation}) => {
       weight: '0',
       shippingClass: '',
     },
-    tax_class: '',
+    taxClass: '',
     feature_product: false,
     product_type: {
       virtual: false,
@@ -79,13 +80,16 @@ const EditProductsScreen = ({route, navigation}) => {
   const [groups, setGroups] = useState([
     {name: '', attributes: [{key: '', value: '', keyId: '', valueId: ''}]},
   ]);
+
+  // console.log(data.product.data.pricing);
+
   useEffect(() => {
     if (Categories.data && Categories.data.productCategories) {
       var selectedCat = JSON.parse(
         JSON.stringify(Categories.data.productCategories.data),
       );
       if (selectedCat && selectedCat.length) {
-        setAllCategories(unflatten(selectedCat));
+        setAllCategories(selectedCat);
       }
     }
   }, [Categories.data]);
@@ -135,30 +139,34 @@ const EditProductsScreen = ({route, navigation}) => {
       }
     }
   }, [allTaxes, allShipppings]);
+
   useEffect(() => {
     if (isFocused) {
       if (data && data.product) {
         var singleProduct = data.product.data;
         if (singleProduct.feature_image) {
-          setFeaturedImage(BASE_URL + singleProduct.feature_image);
+          setFeaturedImage(URL + singleProduct.feature_image);
         }
         if (singleProduct.gallery_image.length > 0) {
           var allGalleryImage = singleProduct.gallery_image.map(
-            gallery => BASE_URL + gallery.original,
+            gallery => URL + gallery,
           );
           setGallery(allGalleryImage);
         }
-
+        const cvdata = convertData(singleProduct.specifications);
+        console.log(singleProduct?.categoryTree, ' cattree');
         const newData = {
           _id: singleProduct._id,
           name: singleProduct.name,
           description: singleProduct.description,
           url: singleProduct.url,
-          categoryId: singleProduct.categoryId,
+          categoryId: singleProduct.categoryId?.map(cat => cat.id),
+          categoryTree: singleProduct?.categoryTree || [],
           brand: singleProduct.brand,
           pricing: {
             price: singleProduct.pricing.price,
             sellprice: singleProduct.pricing.sellprice,
+            discountPercentage: singleProduct.pricing.discountPercentage,
           },
           status: singleProduct.status,
           meta: {
@@ -186,6 +194,7 @@ const EditProductsScreen = ({route, navigation}) => {
           custom_field: [],
         };
         setProductDetail(newData);
+        setGroups(cvdata);
       }
     } else {
       setProductDetail({});
@@ -212,14 +221,15 @@ const EditProductsScreen = ({route, navigation}) => {
   };
 
   const onGalleryImagesRemove = img => {
-    if (img._id) {
+    console.log(img);
+    if (img?._id) {
       let galleryImages = productDetail.gallery_image;
       let removed_image = productDetail.removed_image || [];
-      removed_image.push(img._id);
+      removed_image.push(img?._id);
       setProductDetail({
         ...productDetail,
         gallery_image: galleryImages.filter(
-          galleryImg => galleryImg._id !== img._id,
+          galleryImg => galleryImg?._id !== img?._id,
         ),
         removed_image,
       });
@@ -252,6 +262,26 @@ const EditProductsScreen = ({route, navigation}) => {
   };
 
   const UpdateProductSubmit = () => {
+    const {
+      name,
+      url,
+      brand,
+      short_description,
+      description,
+      sku,
+      quantity,
+      pricing,
+      status,
+      feature_product,
+      product_type,
+      shipping,
+      tax_class,
+      meta,
+      custom_field,
+      attribute,
+      variant,
+      combinations,
+    } = productDetail;
     const result = [];
     groups.forEach(group => {
       group.attributes.forEach(attribute => {
@@ -264,8 +294,9 @@ const EditProductsScreen = ({route, navigation}) => {
         });
       });
     });
+    var CategoryIDs = productDetail.categoryId.map(cat => cat.id);
 
-    if (isEmpty(addProductDetail.name)) {
+    if (isEmpty(name)) {
       setValidationMessage('Name is Required');
       setShowAlert(true);
       return;
@@ -290,32 +321,31 @@ const EditProductsScreen = ({route, navigation}) => {
       setShowAlert(true);
       return;
     }
-    var CategoryIDs = productDetail.categoryId.map(cat => cat.id);
     var details = {
       _id: productDetail._id,
-      name: productDetail.name,
-      url: productDetail.url,
+      name: name,
+      url: url,
       categoryId: CategoryIDs,
-      brand: productDetail.brand.id,
-      short_description: productDetail.short_description,
-      description: productDetail.description,
-      sku: productDetail.sku,
-      quantity: productDetail.quantity,
-      pricing: productDetail.pricing,
-      status: productDetail.status,
-      featured_product: productDetail.featured_product,
-      product_type: productDetail.product_type,
-      shipping: productDetail.shipping,
-      tax_class: productDetail.taxClass,
-      meta: productDetail.meta,
-      custom_field: productDetail.custom_field,
+      brand: brand.id,
+      short_description: short_description,
+      description: description,
+      sku: sku,
+      quantity: quantity,
+      pricing: pricing,
+      status: status,
+      featured_product: feature_product,
+      product_type: product_type,
+      shipping: shipping,
+      tax_class: tax_class,
+      meta: meta,
+      custom_field: custom_field,
       specifications: result,
-      // attribute: productDetail.attribute,
-      // variant: productDetail.variant,
-      // combinations: productDetail.combinations,
-      update_gallery_image: productDetail.update_gallery_image || '',
-      removed_image: productDetail.removed_image || '',
-      update_feature_image: productDetail.update_feature_image || '',
+      // attribute: attribute,
+      // variant: variant,
+      // combinations: combinations,
+      update_gallery_image: productDetail?.update_gallery_image || '',
+      removed_image: productDetail?.removed_image || '',
+      update_feature_image: productDetail?.update_feature_image || '',
     };
     console.log('UpdateProductSubmit details', details);
     updateProduct({variables: details});
