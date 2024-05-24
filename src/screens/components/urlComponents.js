@@ -8,6 +8,7 @@ import axios from 'axios';
 import SyncStorage from 'sync-storage';
 import {GET_URL} from '../../queries/productQueries';
 import {mutation} from '../../utils/service';
+import {Divider} from '@rneui/base';
 
 const URLComponents = ({url, updateOf, changePermalink, updatePermalink}) => {
   const [editPremalink, setEditPermalink] = useState(false);
@@ -43,6 +44,7 @@ const URLComponents = ({url, updateOf, changePermalink, updatePermalink}) => {
             <URLValue>{url}</URLValue>
           </URLLinkWrapper>
         )}
+        <Divider />
         <URLBtn onPress={changeUrl}>
           <URLBtnText>{editPremalink ? 'Ok' : 'Edit'}</URLBtnText>
         </URLBtn>
@@ -61,9 +63,9 @@ const URLWrapper = styled.View`
 `;
 const URLLinkWrapper = styled.View`
   flex-direction: row;
-  border-bottom-width: 2px;
   border-color: #ddd;
   padding-bottom: 5px;
+  width: 90%;
 `;
 const URLLabel = styled.Text`
   font-size: 16px;

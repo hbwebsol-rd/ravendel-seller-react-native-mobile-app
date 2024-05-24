@@ -2,7 +2,7 @@ import React, {useContext, useState, useEffect} from 'react';
 import {View, StyleSheet, Alert} from 'react-native';
 import {DrawerContentScrollView, DrawerItem} from '@react-navigation/drawer';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import {Avatar, Text} from "@rneui/themed";
+import {Avatar, Text} from '@rneui/themed';
 import {Context as AuthContext} from '../../context/AuthContext';
 import {isEmpty, BASE_URL} from '../../utils/helper';
 
@@ -79,7 +79,7 @@ export function CustomDrawer(props) {
               )}
               label="Order"
               onPress={() => {
-                props.navigation.navigate('OrdersScreen');
+                props.navigation.navigate('Order');
               }}
             />
             <DrawerItem
@@ -88,7 +88,7 @@ export function CustomDrawer(props) {
               )}
               label="Products"
               onPress={() => {
-                props.navigation.navigate('ProductsScreen');
+                props.navigation.navigate('AllProduct');
               }}
             />
             <DrawerItem
@@ -97,7 +97,7 @@ export function CustomDrawer(props) {
               )}
               label="Categories"
               onPress={() => {
-                props.navigation.navigate('CategoryScreen');
+                props.navigation.navigate('AllCategories');
               }}
             />
             <DrawerItem
@@ -106,7 +106,16 @@ export function CustomDrawer(props) {
               )}
               label="Attributes"
               onPress={() => {
-                props.navigation.navigate('AttrbutesScreen');
+                props.navigation.navigate('AllAttributes');
+              }}
+            />
+            <DrawerItem
+              icon={({color, size}) => (
+                <Icon name="boxes" color={color} size={18} />
+              )}
+              label="Group"
+              onPress={() => {
+                props.navigation.navigate('AllGroups');
               }}
             />
             <DrawerItem
@@ -115,7 +124,7 @@ export function CustomDrawer(props) {
               )}
               label="Brands"
               onPress={() => {
-                props.navigation.navigate('BrandsScreens');
+                props.navigation.navigate('AllBrands');
               }}
             />
             <DrawerItem
@@ -124,7 +133,7 @@ export function CustomDrawer(props) {
               )}
               label="Coupons"
               onPress={() => {
-                props.navigation.navigate('CouponScreen');
+                props.navigation.navigate('AllCoupons');
               }}
             />
             <DrawerItem
@@ -133,7 +142,7 @@ export function CustomDrawer(props) {
               )}
               label="Customers"
               onPress={() => {
-                props.navigation.navigate('CustomersScreen');
+                props.navigation.navigate('AllCustomers');
               }}
             />
             <DrawerItem
