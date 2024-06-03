@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {PermissionsAndroid, View} from 'react-native';
+import {Alert, PermissionsAndroid, View, StyleSheet} from 'react-native';
 import {
   AddWrapper,
   TopBar,
@@ -27,15 +27,20 @@ import {Text} from '@rneui/base';
 import {getCheckedIds, getDiscount} from '../../../utils/helper';
 import ImgToBase64 from 'react-native-image-base64';
 import EditCategoriesComponent from '../../components/edit-category';
+import Multiselect from '../../components/multiselect';
+import ThemeColor from '../../../utils/color';
 
 /* =============================Upload Featured Image and Gallery Options============================= */
 const options = {
   title: 'Select Avatar',
-  customButtons: [{name: 'fb', title: 'Choose Photo from Facebook'}],
+  customButtons: [{name: 'fb', title: 'Choose Photo from Gallery'}],
   storageOptions: {
     skipBackup: true,
     path: 'images',
   },
+  quality: 0.5,
+  maxWidth: 500,
+  maxHeight: 500,
 };
 
 const AddProductView = ({
@@ -85,10 +90,10 @@ const AddProductView = ({
           name: response.assets[0].uri.substr(
             response.assets[0].uri.lastIndexOf('/') + 1,
           ),
-          file: 'data:image/png;base64' + base64String,
+          file: 'data:image/png;base64,' + base64String.trim(),
         };
         console.log('response.uri', response.uri);
-        console.log('image', image);
+        // console.log('image', image);
 
         if (uploadImageOf === 'feautred_image') {
           featureImageAdd(image);
@@ -185,19 +190,21 @@ const AddProductView = ({
   } = addProductDetail;
   return (
     <AddWrapper>
-      <TopBar>
-        <CheckBox
-          title="Draft"
-          checked={status === 'Draft'}
-          onPress={() => inputChange('status', 'Draft')}
-        />
-        <CheckBox
-          title="Publish"
-          checked={status === 'Publish'}
-          onPress={() => inputChange('status', 'Publish')}
-        />
+      <View style={styles.addBtnContainer}>
+        <View style={{flexDirection: 'row'}}>
+          <CheckBox
+            title="Draft"
+            checked={status === 'Draft'}
+            onPress={() => inputChange('status', 'Draft')}
+          />
+          <CheckBox
+            title="Publish"
+            checked={status === 'Publish'}
+            onPress={() => inputChange('status', 'Publish')}
+          />
+        </View>
         <Button title="Add" onPress={onAdd} />
-      </TopBar>
+      </View>
       <AddFormWrapper>
         {/* =================================Product Information============================== */}
         <AddFormSections>
@@ -378,7 +385,7 @@ const AddProductView = ({
         </Accordion>
 
         {/* =================================Product Shipping============================== */}
-        {!product_type.virtual ? (
+        {!product_type?.virtual ? (
           <ShippingComponent
             shippingState={allShipppings}
             shipping={shipping}
@@ -392,8 +399,45 @@ const AddProductView = ({
         ) : null}
 
         {/* =================================Product Brand============================== */}
-        <Accordion title="Brands">
-          <CustomPicker
+        {/* <Accordion title="Brands"> */}
+        {/* <View style={{backgroundColor: ThemeColor.whiteColor,zIndex:50}}> */}
+        <View style={{backgroundColor: ThemeColor.whiteColor}}>
+          <Text
+            style={{
+              marginLeft: 12,
+              fontWeight: 'bold',
+              color: ThemeColor.primaryColor,
+              marginBottom: 5,
+              fontSize: 16,
+            }}>
+            Brands
+          </Text>
+        </View>
+
+        <Multiselect
+          height={50}
+          inititalselect={brand}
+          fieldname={'name'}
+          ibw={0}
+          inputBgColor={ThemeColor.whiteColor}
+          data={brands?.data ? brands.data : []}
+          onchange={(name, e) => {
+            inputChange('brand', e);
+          }}
+          placeholder={'Select Brands'}
+          ibbw={0.9}
+          color="black"
+          borderBottomColor={'#3C3C4360'}
+          padding={0}
+          searchenabled={true}
+          fs={15}
+          paddingLeft={0}
+          fontColr={'#707070'}
+          // mode="BADGE"
+          // multiple={true}
+        />
+
+        {/* <CustomPicker
             iosDropdown
             pickerKey="name"
             pickerVal="id"
@@ -403,31 +447,33 @@ const AddProductView = ({
             pickerValChange={val => inputChange('brand', val)}
             placeholder="Please Select"
             label="Brand"
-          />
-        </Accordion>
+          /> */}
+        {/* </View> */}
+        {/* </View> */}
+        {/* </Accordion> */}
 
         {/* =================================Product Type============================== */}
         <Accordion title="Product Type">
           <View style={{flexDirection: 'row'}}>
             <CheckBox
               title="Virtual"
-              checked={product_type.virtual}
+              checked={product_type?.virtual}
               onPress={() =>
                 objectInputChange(
                   'product_type',
                   'virtual',
-                  !product_type.virtual,
+                  !product_type?.virtual,
                 )
               }
             />
             <CheckBox
               title="Downloadable"
-              checked={product_type.downloadable}
+              checked={product_type?.downloadable}
               onPress={() =>
                 objectInputChange(
                   'product_type',
                   'downloadable',
-                  !product_type.downloadable,
+                  !product_type?.downloadable,
                 )
               }
             />
@@ -471,3 +517,15 @@ const AddProductView = ({
 };
 
 export default AddProductView;
+const styles = StyleSheet.create({
+  addBtnContainer: {
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderColor: '#ddd',
+    marginTop: -10,
+  },
+});

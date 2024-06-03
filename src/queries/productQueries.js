@@ -51,6 +51,28 @@ const PRODUCT_TILE_DATA = gql`
   }
 `;
 
+const GET_PRODUCT_TILE_DATA = gql`
+  fragment ProductTile on Product {
+    _id
+    name
+    url
+    brand {
+      id
+      name
+      url
+      brand_logo
+      meta
+      date
+      updated
+    }
+    feature_image
+    status
+    date
+    updated
+    pricing
+  }
+`;
+
 const GET_CATEGORIES = gql`
   {
     productCategories {
@@ -105,6 +127,7 @@ const ADD_CATEGORY = gql`
     $url: String
     $description: String
     $image: Upload
+    $thumbnail_image: Upload
     $meta: customObject
   ) {
     addProductCategory(
@@ -113,6 +136,7 @@ const ADD_CATEGORY = gql`
       url: $url
       description: $description
       image: $image
+      thumbnail_image: $thumbnail_image
       meta: $meta
     ) {
       message
@@ -169,7 +193,7 @@ const GET_PRODUCTS = gql`
       }
     }
   }
-  ${PRODUCT_TILE_DATA}
+  ${GET_PRODUCT_TILE_DATA}
 `;
 
 const GET_PRODUCT = gql`
@@ -192,6 +216,7 @@ const ADD_PRODUCT = gql`
     $name: String
     $url: String
     $categoryId: customArray
+    $categoryTree: customArray
     $brand: ID
     $short_description: String
     $description: String
@@ -227,6 +252,7 @@ const ADD_PRODUCT = gql`
       taxClass: $taxClass
       meta: $meta
       specifications: $specifications
+      categoryTree: $categoryTree
     ) {
       message
       success
@@ -240,6 +266,7 @@ const UPDATE_PRODUCT = gql`
     $name: String
     $url: String
     $categoryId: customArray
+    $categoryTree: customArray
     $brand: ID
     $short_description: String
     $description: String
@@ -280,6 +307,7 @@ const UPDATE_PRODUCT = gql`
       meta: $meta
       custom_field: $custom_field
       specifications: $specifications
+      categoryTree: $categoryTree
     ) {
       message
       success

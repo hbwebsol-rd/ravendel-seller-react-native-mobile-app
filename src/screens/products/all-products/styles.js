@@ -8,6 +8,7 @@ export const ProductsCardWrapper = styled.View`
   flex-direction: row;
   flex-wrap: wrap;
   padding-bottom: 20px;
+  margin-horizontal: 10px;
 `;
 export const ProductCard = styled.TouchableOpacity`
   width: 48%;

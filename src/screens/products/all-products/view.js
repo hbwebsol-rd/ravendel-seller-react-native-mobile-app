@@ -28,6 +28,7 @@ import {Image, SearchBar} from '@rneui/themed';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {
   FlatList,
+  RefreshControl,
   Share,
   StyleSheet,
   Text,
@@ -35,7 +36,13 @@ import {
   View,
 } from 'react-native';
 import {GET_PRODUCTS, DELETE_PRODUCT} from '../../../queries/productQueries';
-import {isEmpty, BASE_URL, formatCurrency, URL} from '../../../utils/helper';
+import {
+  isEmpty,
+  BASE_URL,
+  formatCurrency,
+  URL,
+  wait,
+} from '../../../utils/helper';
 import Colors from '../../../utils/color';
 import AppLoader from '../../components/loader';
 import {useMutation, useQuery, NetworkStatus} from '@apollo/client';
@@ -53,6 +60,7 @@ const AllProductsView = ({navigation, RefecthAllProducts, stopReload}) => {
   const [inpvalue, setInpvalue] = useState('');
   const [openModal, setOpenModal] = useState(false);
   const [productStatus, setProductStatus] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
   const {currencyOptions, currencySymbol} = useSelector(
     state => state.dashboard,
   );
@@ -63,14 +71,6 @@ const AllProductsView = ({navigation, RefecthAllProducts, stopReload}) => {
       notifyOnNetworkStatusChange: true,
     },
   );
-  // const bottomSheetModalRef = useRef(null);
-
-  // // variables
-  // const snapPoints = useMemo(() => ['60%'], []); // For Bottomsheet Modal
-  // // callbacks
-  // const handlePresentModalPress = useCallback(() => {
-  //   bottomSheetModalRef.current?.present();
-  // }, []);
 
   const picker = [
     {label: 'Pushbish', value: 'publish'},
@@ -85,41 +85,9 @@ const AllProductsView = ({navigation, RefecthAllProducts, stopReload}) => {
     if (data && data?.products?.data) setAllProducts(data?.products?.data);
   }, [data]);
 
-  const [deleteProduct, {loading: DeleteLoading, errors}] = useMutation(
-    DELETE_PRODUCT,
-    {
-      refetchQueries: [{query: GET_PRODUCTS}],
-      onError: error => {
-        // Handle error as needed
-        console.error('Error deleting Product:', error);
-      },
-      onCompleted: data => {
-        // Handle completion as needed
-        // GraphqlSuccess('Deleted successfully');
-        console.log('Product deleted successfully:', data);
-        refetch();
-      },
-    },
-  );
-
-  const deleteProductFun = id => {
-    console.log(id);
-    deleteProduct(id);
-  };
-
-  if (error) {
-    GraphqlError(error);
-    return (
-      <Text style={{textAlign: 'center', padding: 10, color: 'red'}}>
-        Something went wrong. Please try again later
-      </Text>
-    );
-  }
-
-  if (RefecthAllProducts) {
-    stopReload();
+  useEffect(() => {
     refetch();
-  }
+  }, []);
 
   const onShare = async url => {
     try {
@@ -158,7 +126,9 @@ const AllProductsView = ({navigation, RefecthAllProducts, stopReload}) => {
           })
         : true;
       const matchesProductStatus =
-        !productStatus || data['status'].toLowerCase().includes(productStatus);
+        !productStatus ||
+        (data['status'] &&
+          data['status'].toLowerCase().includes(productStatus));
       return matchesSearch && matchesProductStatus;
     });
     setAllProducts(filterdata);
@@ -171,12 +141,25 @@ const AllProductsView = ({navigation, RefecthAllProducts, stopReload}) => {
 
   const handleClear = () => {
     setProductStatus('');
-    setPaymentFillter('');
-    setFrom('');
-    setTo('');
-    setAllOrders(data?.orders?.data);
-    bottomSheetModalRef.current?.dismiss();
+    setAllProducts(data?.products?.data);
+    setOpenModal(false);
   };
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    refetch();
+    wait(2000).then(() => setRefreshing(false));
+  }, []);
+
+  if (error) {
+    GraphqlError(error);
+    return (
+      <Text style={{textAlign: 'center', padding: 10, color: 'red'}}>
+        Something went wrong. Please try again later
+      </Text>
+    );
+  }
+
   const Item = ({product, i}) => (
     <>
       <TouchableOpacity
@@ -267,7 +250,7 @@ const AllProductsView = ({navigation, RefecthAllProducts, stopReload}) => {
                 backgroundColor:
                   product.status === 'Publish'
                     ? ThemeColor.green
-                    : ThemeColor.redColor,
+                    : ThemeColor.orangeColor,
               }}
               status={product.status}>
               <ProductStatusText>
@@ -297,114 +280,126 @@ const AllProductsView = ({navigation, RefecthAllProducts, stopReload}) => {
           label=""
           value={inpvalue}
           onChangeText={handleinpiut}
-          placeholder="Search Here"
+          placeholder="Search Products"
           leftIcon={() => <Icon name="search" color="gray" size={16} />}
           leftIconContainerStyle={{marginLeft: 15}}
         />
         <TouchableOpacity
-          style={{
-            width: 50,
-            height: 50,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
+          style={styles.filter}
           onPress={() => setOpenModal(true)}>
           <Icon name="filter" color="gray" size={30} />
         </TouchableOpacity>
       </View>
-      <MainContainer>
-        {DeleteLoading || loading || networkStatus === NetworkStatus.refetch ? (
-          <AppLoader />
-        ) : data && data.products && data?.products?.data.length > 0 ? (
-          <>
-            <ProductsWrapper>
-              <ProductsCardWrapper>
-                <FlatList
-                  initialNumToRender={10}
-                  keyboardShouldPersistTaps="always"
-                  showsVerticalScrollIndicator={false}
-                  // refreshControl={
-                  //   <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-                  // }
-                  data={allProducts}
-                  renderItem={renderItem}
-                  ListEmptyComponent={() => (
-                    <View>
-                      <Text
-                        style={{
-                          fontSize: 16,
-                          alignSelf: 'center',
-                          color: 'grey',
-                        }}>
-                        No Records Found
-                      </Text>
-                    </View>
-                  )}
-                />
-              </ProductsCardWrapper>
-            </ProductsWrapper>
-          </>
-        ) : null}
-        <BottomModal setModalOpen={setOpenModal} modalOpen={openModal}>
+      {/* <MainContainer> */}
+      {loading || networkStatus === NetworkStatus.refetch ? (
+        <AppLoader />
+      ) : data && data.products && data?.products?.data?.length > 0 ? (
+        <>
+          {/* <ProductsWrapper> */}
+          <ProductsCardWrapper>
+            <FlatList
+              initialNumToRender={10}
+              keyboardShouldPersistTaps="always"
+              showsVerticalScrollIndicator={false}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              }
+              data={allProducts}
+              renderItem={renderItem}
+              ListEmptyComponent={() => (
+                <View>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      alignSelf: 'center',
+                      color: 'grey',
+                    }}>
+                    No Records Found
+                  </Text>
+                </View>
+              )}
+            />
+          </ProductsCardWrapper>
+          {/* </ProductsWrapper> */}
+        </>
+      ) : null}
+      <BottomModal setModalOpen={setOpenModal} modalOpen={openModal}>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}>
           <Text style={{fontSize: 16}}>Filter</Text>
-          <CustomPicker
-            iosSelect
-            pickerKey="label"
-            pickerVal="value"
-            androidPickerData={picker}
-            iosPickerData={picker}
-            selectedValue={productStatus}
-            pickerValChange={val => {
-              handleFilter(val);
-            }}
-            placeholder="All"
-            label="Product Status"
-            getNullval
-            onDonePress={() => {}}
-          />
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-around',
-              marginTop: 15,
-            }}>
-            <TouchableOpacity
-              onPress={() => setOpenModal(false)}
-              style={styles.cancelBtn}>
-              <Text style={{color: '#fff', fontSize: 16}}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => applyFilter()}
-              style={styles.filterBtn}>
-              <Text style={{color: '#fff', fontSize: 16}}>Apply Filter</Text>
-            </TouchableOpacity>
-          </View>
-          {productStatus ? (
+
+          {true ? (
             <TouchableOpacity
               onPress={() => handleClear()}
-              style={{
-                marginTop: 5,
-                alignSelf: 'center',
-                width: '45%',
-                paddingVertical: 10,
-                backgroundColor: ThemeColor.grayColor,
-                justifyContent: 'center',
-                alignItems: 'center',
-                borderRadius: 8,
-              }}>
-              <Text style={{color: '#fff', fontSize: 16}}>Clear Filter</Text>
+              // style={{
+              //   marginTop: 5,
+              //   alignSelf: 'center',
+              //   width: '45%',
+              //   paddingVertical: 10,
+              //   backgroundColor: ThemeColor.grayColor,
+              //   justifyContent: 'center',
+              //   alignItems: 'center',
+              //   borderRadius: 8,
+              // }}
+            >
+              <Text style={{color: Colors.primaryColor, fontSize: 14}}>
+                Clear Filter
+              </Text>
             </TouchableOpacity>
           ) : (
             ''
           )}
-        </BottomModal>
-      </MainContainer>
+        </View>
+        <CustomPicker
+          iosSelect
+          pickerKey="label"
+          pickerVal="value"
+          androidPickerData={picker}
+          iosPickerData={picker}
+          selectedValue={productStatus}
+          pickerValChange={val => {
+            handleFilter(val);
+          }}
+          placeholder="All"
+          label="Product Status"
+          getNullval
+          onDonePress={() => {}}
+        />
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-around',
+            marginTop: 15,
+          }}>
+          <TouchableOpacity
+            onPress={() => setOpenModal(false)}
+            style={styles.cancelBtn}>
+            <Text style={{color: '#fff', fontSize: 16}}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => applyFilter()}
+            style={styles.filterBtn}>
+            <Text style={{color: '#fff', fontSize: 16}}>Apply Filter</Text>
+          </TouchableOpacity>
+        </View>
+      </BottomModal>
+      {/* </MainContainer> */}
     </>
   );
 };
 
 export default AllProductsView;
 const styles = StyleSheet.create({
+  filter: {
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   status: {
     padding: 0,
     width: 60,
@@ -445,7 +440,7 @@ const styles = StyleSheet.create({
   filterBtn: {
     width: '45%',
     paddingVertical: 10,
-    backgroundColor: ThemeColor.persianGreen,
+    backgroundColor: ThemeColor.primaryColor,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
