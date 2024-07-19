@@ -11,7 +11,9 @@ export const CategoryWrapper = styled.View`
   justify-content: space-between;
   align-items: center;
 `;
-export const CategoryName = styled.Text``;
+export const CategoryName = styled.Text`
+  color: #000;
+`;
 export const CategoryAction = styled.View`
   flex-direction: row;
   align-items: center;

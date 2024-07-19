@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   AllCategoriesWrapper,
   CategoryWrapper,
@@ -15,15 +15,19 @@ import AppLoader from '../../components/loader';
 import {GET_BRANDS, DELETE_BRAND} from '../../../queries/brandsQueries';
 import {useMutation} from '@apollo/client';
 import {useIsFocused} from '@react-navigation/native';
-import {Alert, FlatList} from 'react-native';
+import {Alert, FlatList, StyleSheet, Text, View} from 'react-native';
 import MainContainer from '../../components/mainContainer';
 import {GraphqlError, GraphqlSuccess} from '../../components/garphqlMessages';
+import {Input} from '@rneui/base';
+import {capitalizeFirstLetter} from '../../../utils/helper';
 
 const AllBrandsView = ({navigation}) => {
   const isFocused = useIsFocused();
 
   const {loading, error, data, refetch} = useQuery(GET_BRANDS);
-  console.log(data, 'brand data');
+  const [inpvalue, setInpvalue] = useState('');
+  const [allBrands, setAllBrands] = useState([]);
+
   const [deleteBrands, {loading: deleteLoading}] = useMutation(DELETE_BRAND, {
     onError: error => {
       GraphqlError(error);
@@ -33,6 +37,32 @@ const AllBrandsView = ({navigation}) => {
       refetch();
     },
   });
+
+  useEffect(() => {
+    if (data && data.brands.data) {
+      setAllBrands(data.brands.data);
+    }
+  }, [data]);
+
+  const handleinpiut = e => {
+    setInpvalue(e);
+  };
+
+  useEffect(() => {
+    applyFilter();
+  }, [inpvalue]);
+
+  const applyFilter = () => {
+    const filterdata =
+      data &&
+      data.brands.data.filter(data => {
+        const matchesSearch = inpvalue
+          ? String(data.name).toLowerCase().includes(inpvalue.toLowerCase())
+          : true;
+        return matchesSearch;
+      });
+    setAllBrands(filterdata);
+  };
 
   if (isFocused) {
     refetch();
@@ -47,12 +77,12 @@ const AllBrandsView = ({navigation}) => {
     return <ErrorText>Something went wrong. Please try again later</ErrorText>;
   }
 
-  const brands = data.brands.data;
+  // const brands = data.brands.data;
 
   const Item = ({brand, i}) => (
     <>
       <CategoryWrapper key={i}>
-        <CategoryName>{brand.name}</CategoryName>
+        <CategoryName>{capitalizeFirstLetter(brand.name)}</CategoryName>
         <CategoryAction>
           <CategoryEditBtn
             onPress={() => {
@@ -72,7 +102,10 @@ const AllBrandsView = ({navigation}) => {
                   },
                   {
                     text: 'OK',
-                    onPress: () => deleteBrands({variables: {id: brand.id}}),
+                    onPress: () => {
+                      setInpvalue('');
+                      deleteBrands({variables: {id: brand.id}}
+                      )}
                   },
                 ],
                 {cancelable: false},
@@ -92,35 +125,53 @@ const AllBrandsView = ({navigation}) => {
       <AllCategoriesWrapper>
         <>
           {deleteLoading ? <AppLoader /> : null}
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+            }}>
+            <Input
+              containerStyle={{
+                height: 70,
+                width: '100%',
+              }}
+              inputContainerStyle={styles.inputStyle}
+              label=""
+              value={inpvalue}
+              onChangeText={handleinpiut}
+              placeholder="Search Brands"
+              leftIcon={() => <Icon name="search" color="gray" size={16} />}
+              leftIconContainerStyle={{marginLeft: 15}}
+            />
+          </View>
+          {/* {brands.length && ( */}
+          <>
+            <FlatList
+              initialNumToRender={10}
+              keyboardShouldPersistTaps="always"
+              showsVerticalScrollIndicator={false}
+              // refreshControl={
+              //   <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              // }
+              data={allBrands}
+              renderItem={renderItem}
+              ListEmptyComponent={() => (
+                <View>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      alignSelf: 'center',
+                      color: 'grey',
+                    }}>
+                    No Records Found
+                  </Text>
+                </View>
+              )}
+            />
+          </>
+          {/* )} */}
 
-          {brands.length && (
-            <>
-              <FlatList
-                initialNumToRender={10}
-                keyboardShouldPersistTaps="always"
-                showsVerticalScrollIndicator={false}
-                // refreshControl={
-                //   <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-                // }
-                data={brands}
-                renderItem={renderItem}
-                ListEmptyComponent={() => (
-                  <View>
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        alignSelf: 'center',
-                        color: 'grey',
-                      }}>
-                      No Records Found
-                    </Text>
-                  </View>
-                )}
-              />
-            </>
-          )}
-
-          {brands.length ? (
+          {/* {brands.length ? (
             brands
               // .sort((a, b) => (a.name > b.name ? 1 : -1))
               .map((brand, i) => (
@@ -159,10 +210,18 @@ const AllBrandsView = ({navigation}) => {
               ))
           ) : (
             <ErrorText>No Data</ErrorText>
-          )}
+          )} */}
         </>
       </AllCategoriesWrapper>
     </MainContainer>
   );
 };
 export default AllBrandsView;
+const styles = StyleSheet.create({
+  inputStyle: {
+    borderBottomWidth: 0,
+    borderBottomColor: 'black',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+  },
+});

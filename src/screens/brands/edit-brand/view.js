@@ -9,42 +9,63 @@ import {useMutation} from '@apollo/client';
 import {UPDATE_BRAND} from '../../../queries/brandsQueries';
 import FormActionsComponent from '../../components/formAction';
 import {GraphqlError, GraphqlSuccess} from '../../components/garphqlMessages';
+import {ALERT_ERROR, ALERT_SUCCESS} from '../../../store/reducer/alert';
+import {useDispatch} from 'react-redux';
 
 const EditBrandView = ({navigation, singleBrandDetail}) => {
+  const dispatch = useDispatch();
   const [brandFrom, setBrandForm] = useState({});
   const [featureImage, setFeatureImage] = useState('');
   const [updateBrand, {loading: addedLoading}] = useMutation(UPDATE_BRAND, {
     onError: error => {
-      GraphqlError(error);
+      console.log(error)
+      dispatch({type: ALERT_ERROR, payload: 'Something went wrong'});
     },
     onCompleted: data => {
-      GraphqlSuccess('Updated successfully');
-      setBrandForm({});
-      navigation.goBack();
+      console.log(data, ' update success');
+      if (data.updateBrand.success) {
+        dispatch({type: ALERT_SUCCESS, payload: data.updateBrand.message});
+
+        setBrandForm({});
+        navigation.goBack();
+      } else {
+        dispatch({type: ALERT_ERROR, payload: data.updateBrand.message});
+      }
     },
   });
 
   useEffect(() => {
-    if (singleBrandDetail) {
-      setBrandForm(singleBrandDetail);
+    if (!isEmpty(singleBrandDetail)) {
+      const data = {
+        url: singleBrandDetail.url,
+        name: singleBrandDetail.name,
+        brand_logo: {uri: singleBrandDetail.brand_logo?BASE_URL + singleBrandDetail.brand_logo:null},
+        meta: {
+          description: singleBrandDetail.meta.description,
+          keywords: singleBrandDetail.meta.keywords,
+          title: singleBrandDetail.meta.title,
+        },
+      };
+      setFeatureImage(data.image);
+      setBrandForm(data);
     }
   }, [singleBrandDetail]);
 
   const UpdateBrandsForm = () => {
     var updateBrandObject = {
-      id: brandFrom.id,
+      id: singleBrandDetail.id,
       name: brandFrom.name,
       url: brandFrom.url,
-      brand_logo:
-        brandFrom.brand_logo === '' || brandFrom.brand_logo === null
-          ? featureImage
-          : brandFrom.brand_logo,
+      updated_brand_logo: brandFrom.update_brand_logo
+        ? [brandFrom.update_brand_logo]
+        : '',
       meta: {
         title: brandFrom.meta.title,
         description: brandFrom.meta.description,
         keywords: brandFrom.meta.keywords,
       },
     };
+    console.log('update brand payload: ', updateBrandObject);
     updateBrand({variables: updateBrandObject});
   };
 
@@ -89,22 +110,32 @@ const EditBrandView = ({navigation, singleBrandDetail}) => {
                   setBrandForm({...brandFrom, ['url']: value})
                 }
               />
-
-              {brandFrom.brand_logo ? (
+              {brandFrom.brand_logo.uri ? (
                 <FeaturedImageComponents
-                  image={BASE_URL + brandFrom.brand_logo}
+                  image={brandFrom.brand_logo}
                   inputChange={img => {
-                    setBrandForm({...brandFrom, ['brand_logo']: img});
+                    setBrandForm({...brandFrom, ['updated_brand_logo']: img});
                   }}
                   removeImage={() =>
-                    setBrandForm({...brandFrom, ['brand_logo']: ''})
+                    setBrandForm({
+                      ...brandFrom,
+                      ['updated_brand_logo']: '',
+                      ['brand_logo']: '',
+                      
+                    })
                   }
                 />
               ) : (
                 <>
                   <FeaturedImageComponents
                     image={featureImage}
-                    inputChange={img => setFeatureImage(img)}
+                    inputChange={img => {
+                      setBrandForm({
+                        ...brandFrom,
+                        ['update_brand_logo']: img,
+                      });
+                      setFeatureImage(img);
+                    }}
                     removeImage={() => setFeatureImage('')}
                   />
                 </>

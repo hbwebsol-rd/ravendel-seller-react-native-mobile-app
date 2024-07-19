@@ -10,9 +10,7 @@ const AllBrandsScreen = ({navigation}) => {
       <AllBrandsView navigation={navigation} />
       <FabBtn
         onPressFunc={() => {
-          navigation.navigate('BrandsScreens', {
-            screen: 'AddBrand',
-          });
+          navigation.navigate('AddBrand');
         }}
       />
     </>
