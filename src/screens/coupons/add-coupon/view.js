@@ -21,28 +21,36 @@ import {useMutation} from '@apollo/client';
 import FormActionsComponent from '../../components/formAction';
 import MulipleSelect from '../../components/multiple-selection';
 import {GraphqlError, GraphqlSuccess} from '../../components/garphqlMessages';
+import {getCheckedIds} from '../../../utils/helper';
+import EditCategoriesComponent from '../../components/edit-category';
+import { ALERT_ERROR, ALERT_SUCCESS } from '../../../store/reducer/alert';
+import { useDispatch } from 'react-redux';
 
 const discountType = [
   {label: 'Fixed Amount Discount', value: 'amount-discount'},
-  {label: 'Fixed Percantage Discount', value: 'precantage-discount'},
+  {label: 'Fixed Percentage Discount', value: 'precantage-discount'},
 ];
 
 var stateObj = {
   code: '',
   description: '',
-  discount_type: 'amount-discount',
-  discount_value: '',
+  discountType: 'amount-discount',
+  discountValue: '',
   free_shipping: false,
   expire: new Date(),
-  minimum_spend: '0',
-  maximum_spend: '0',
+  minimumSpend: '0',
+  maximumSpend: '0',
   products: [],
   exclude_products: [],
   categories: [],
+  categoryTree: [],
+  categoryId: [],
   exclude_categories: [],
 };
 
 const AddCouponsForm = ({navigation}) => {
+  const dispatch = useDispatch();
+
   const [couponForm, setCouponForm] = useState(stateObj);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const {
@@ -56,14 +64,13 @@ const AddCouponsForm = ({navigation}) => {
     error: categoriesError,
     data: categoriesData,
   } = useQuery(GET_CATEGORIES);
-  console.log(productsData, 'prodcdata');
   const products = productsData?.products?.data;
   const allCategories = categoriesData?.productCategories?.data;
 
   const [validation, setValdiation] = useState({
     code: '',
     description: '',
-    discount_value: '',
+    discountValue: '',
   });
 
   const [addCoupon, {loading: addedLoading}] = useMutation(ADD_COUPON, {
@@ -71,32 +78,89 @@ const AddCouponsForm = ({navigation}) => {
       GraphqlError(error);
     },
     onCompleted: data => {
-      GraphqlSuccess('Added successfully');
+      console.log(data,' addcoupon submit')
+      if (data.addCoupon.success) {
+      // GraphqlSuccess('Added successfully');
+      dispatch({type: ALERT_SUCCESS, payload: data.addCoupon.message});
       setCouponForm(stateObj);
       navigation.goBack();
+      }else{
+        dispatch({type: ALERT_ERROR, payload: data.addCoupon.message});
+      }
     },
   });
 
+  const filterTreeData = data => {
+    return data?.reduce((acc, category) => {
+      const filteredCategory = {
+        id: category?.id,
+        name: category.name,
+        checked: category.checked,
+        url: category.url,
+      };
+      if (category?.children && category?.children?.length > 0) {
+        filteredCategory.children = category?.children;
+      }
+
+      if (category?.checked) {
+        acc.push(filteredCategory);
+      } else if (category?.children && category?.children?.length > 0) {
+        filteredCategory.children = filterTreeData(category?.children);
+        if (filteredCategory.children.length > 0) {
+          acc.push(filteredCategory);
+        }
+      }
+
+      return acc;
+    }, []);
+  };
+
   const AddCouponCodeForm = () => {
     if (couponForm.code === '') {
-      setValdiation({...validation, code: 'Required'});
+      setValdiation({...validation, code: 'Code is required'});
     } else if (couponForm.description === '') {
-      setValdiation({...validation, code: '', description: 'Required'});
-    } else if (couponForm.discount_value === '') {
+      setValdiation({
+        ...validation,
+        code: '',
+        description: 'Description is required',
+      });
+    } else if (couponForm.discountValue === '') {
       setValdiation({
         ...validation,
         code: '',
         description: '',
-        discount_value: 'Required',
+        discountValue: 'Discount value is required',
       });
     } else {
       setValdiation({
         ...validation,
         code: '',
         description: '',
-        discount_value: '',
+        discountValue: '',
       });
-      addCoupon({variables: couponForm});
+      // return;
+
+      const filteredData = filterTreeData(couponForm.categoryTree);
+
+      const payload = {
+        code: couponForm.code,
+        description: couponForm.description,
+        discountType: couponForm.discountType,
+        discountValue: Number(couponForm.discountValue),
+        free_shipping: couponForm.free_shipping,
+        expire: couponForm.expire,
+        minimumSpend: Number(couponForm.minimumSpend),
+        maximumSpend: Number(couponForm.maximumSpend),
+        // products: [],
+        // exclude_products: [],
+        category: true,
+        includeCategories: couponForm.categoryId,
+        categoryTree: filteredData,
+        // exclude_categories: [],
+      };
+      console.log(payload);
+      // return;
+      addCoupon({variables: payload});
     }
   };
 
@@ -143,12 +207,12 @@ const AddCouponsForm = ({navigation}) => {
           />
           <Input
             label="Coupon Amount"
-            value={couponForm.discount_value}
+            value={couponForm.discountValue}
             onChangeText={value =>
-              setCouponForm({...couponForm, ['discount_value']: value})
+              setCouponForm({...couponForm, ['discountValue']: value})
             }
             keyboardType="numeric"
-            errorMessage={validation.discount_value}
+            errorMessage={validation.discountValue}
           />
           <CouponExpiryBtn onPress={showDatePicker}>
             <CouponExpiryLabel>Coupon Expiry</CouponExpiryLabel>
@@ -161,16 +225,18 @@ const AddCouponsForm = ({navigation}) => {
             mode="date"
             onConfirm={handleConfirm}
             onCancel={hideDatePicker}
+            minimumDate={new Date()}
+
           />
           <CustomPicker
             iosDropdown
             pickerKey="label"
             pickerVal="value"
             androidPickerData={discountType}
-            selectedValue={couponForm.discount_type}
+            selectedValue={couponForm.discountType}
             iosPickerData={discountType}
             pickerValChange={val =>
-              setCouponForm({...couponForm, ['discount_type']: val})
+              setCouponForm({...couponForm, ['discountType']: val})
             }
             placeholder="Please Select"
             label="Discount Type"
@@ -179,20 +245,42 @@ const AddCouponsForm = ({navigation}) => {
           <Input
             keyboardType="numeric"
             label="Minimum Spend"
-            value={couponForm.minimum_spend}
+            value={couponForm.minimumSpend}
             onChangeText={value =>
-              setCouponForm({...couponForm, ['minimum_spend']: value})
+              setCouponForm({...couponForm, ['minimumSpend']: value})
             }
           />
           <Input
             keyboardType="numeric"
-            label="Maximum Spend"
-            value={couponForm.maximum_spend}
+            label="Discount upto"
+            value={couponForm.maximumSpend}
             onChangeText={value =>
-              setCouponForm({...couponForm, ['maximum_spend']: value})
+              setCouponForm({...couponForm, ['maximumSpend']: value})
             }
           />
-          {products && products.length ? (
+          <EditCategoriesComponent
+            data={allCategories}
+            selectedCategoriesTree={couponForm.categoryTree}
+            selectedCategories={couponForm.categories}
+            onCategoryChange={items => {
+              if (items && items?.length > 0) {
+                const checkedIds = getCheckedIds(items);
+
+                setCouponForm({
+                  ...couponForm,
+                  categoryId: checkedIds,
+                  categoryTree: items,
+                });
+              } else {
+                setCouponForm({
+                  ...couponForm,
+                  categoryId: [],
+                  categoryTree: [],
+                });
+              }
+            }}
+          />
+          {/* {products && products.length ? (
             <>
               <MulipleSelect
                 items={products}
@@ -221,9 +309,9 @@ const AddCouponsForm = ({navigation}) => {
                 value="id"
               />
             </>
-          ) : null}
+          ) : null} */}
 
-          {allCategories && allCategories.length ? (
+          {/* {allCategories && allCategories.length ? (
             <>
               <MulipleSelect
                 items={allCategories}
@@ -252,91 +340,7 @@ const AddCouponsForm = ({navigation}) => {
                 value="id"
               />
             </>
-          ) : null}
-          {/* <Query query={GET_PRODUCTS}>
-            {({loading, error, data}) => {
-              if (loading) {
-                return <AppLoader />;
-              }
-              if (error) {
-                return <Text>Somethng went wrong</Text>;
-              }
-
-              const products = data.products;
-              return products.length ? (
-                <>
-                  <MulipleSelect
-                    items={products}
-                    selected={couponForm.products}
-                    onItemChange={(items) => {
-                      setCouponForm({
-                        ...couponForm,
-                        ['products']: items,
-                      });
-                    }}
-                    label="Products"
-                    itemkey="name"
-                    value="id"
-                  />
-                  <MulipleSelect
-                    items={products}
-                    selected={couponForm.exclude_products}
-                    onItemChange={(items) => {
-                      setCouponForm({
-                        ...couponForm,
-                        ['exclude_products']: items,
-                      });
-                    }}
-                    label="Exclude Products"
-                    itemkey="name"
-                    value="id"
-                  />
-                </>
-              ) : null;
-            }}
-          </Query>
-          <Query query={GET_CATEGORIES}>
-            {({loading, error, data}) => {
-              if (loading) {
-                return <AppLoader />;
-              }
-              if (error) {
-                return <Text>Somethng went wrong</Text>;
-              }
-
-              const allCategories = data.productCategories;
-              return allCategories.length ? (
-                <>
-                  <MulipleSelect
-                    items={allCategories}
-                    selected={couponForm.categories}
-                    onItemChange={(items) => {
-                      setCouponForm({
-                        ...couponForm,
-                        ['categories']: items,
-                      });
-                    }}
-                    label="Categories"
-                    itemkey="name"
-                    value="id"
-                  />
-                  <MulipleSelect
-                    items={allCategories}
-                    selected={couponForm.exclude_categories}
-                    onItemChange={(items) => {
-                      setCouponForm({
-                        ...couponForm,
-                        ['exclude_categories']: items,
-                      });
-                    }}
-                    label="Exclude Categories"
-                    itemkey="name"
-                    value="id"
-                  />
-                </>
-              ) : null;
-            }}
-          </Query> */}
+          ) : null} */}
         </FormWrapper>
         <BottomDivider />
       </AddCouponWrapper>

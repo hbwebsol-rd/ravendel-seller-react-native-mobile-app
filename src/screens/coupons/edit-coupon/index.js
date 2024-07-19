@@ -13,7 +13,7 @@ const EditCouponsScreen = ({route, navigation}) => {
 
   return (
     <>
-      <AppHeader title="Edit Coupons" navigation={navigation} back />
+      <AppHeader title="Edit Coupon" navigation={navigation} back />
       <EditCouponsForm
         navigation={navigation}
         singleCouponDetail={singleCouponDetail}

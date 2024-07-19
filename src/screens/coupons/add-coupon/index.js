@@ -5,7 +5,7 @@ import AddCouponsForm from './view';
 const AddCouponsScreen = ({navigation}) => {
   return (
     <>
-      <AppHeader title="Add Coupons" navigation={navigation} back />
+      <AppHeader title="Add Coupon" navigation={navigation} back />
       <AddCouponsForm navigation={navigation} />
     </>
   );

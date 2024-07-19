@@ -10,9 +10,7 @@ const AllCouponsScreen = ({navigation}) => {
       <AllCouponsView navigation={navigation} />
       <FabBtn
         onPressFunc={() => {
-          navigation.navigate('CouponScreen', {
-            screen: 'AddCoupons',
-          });
+          navigation.navigate('AddCoupons');
         }}
       />
     </>

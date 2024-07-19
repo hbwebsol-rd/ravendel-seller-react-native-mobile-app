@@ -22,12 +22,16 @@ import {useMutation} from '@apollo/client';
 import MainContainer from '../../components/mainContainer';
 import {GraphqlError, GraphqlSuccess} from '../../components/garphqlMessages';
 import moment from 'moment';
+import {useSelector} from 'react-redux';
+import {formatCurrency} from '../../../utils/helper';
 
 const AllCouponsView = ({navigation}) => {
   const isFocused = useIsFocused();
 
   const {loading, error, data, refetch} = useQuery(GET_COUPONS);
-  console.log(data, 'coupon data');
+  const {currencyOptions, currencySymbol} = useSelector(
+    state => state.dashboard,
+  );
   const [deleteCoupon, {loading: deleteLoading}] = useMutation(DELETE_COUPON, {
     onError: error => {
       // Handle error
@@ -66,11 +70,15 @@ const AllCouponsView = ({navigation}) => {
           }>
           <CouponCode>{coupon.code}</CouponCode>
           <CouponCardTitle>
-            {coupon.discount_type === 'precantage-discount'
-              ? `${coupon.discount_value}%`
+            {coupon.discountType === 'precantage-discount'
+              ? `${coupon.discountValue}%`
               : null}
-            {coupon.discount_type === 'amount-discount'
-              ? `$${coupon.discount_value}`
+            {coupon.discountType === 'amount-discount'
+              ? formatCurrency(
+                  coupon.discountValue,
+                  currencyOptions,
+                  currencySymbol,
+                )
               : null}{' '}
             off
           </CouponCardTitle>
@@ -90,10 +98,7 @@ const AllCouponsView = ({navigation}) => {
           <CouponCardFooterAction>
             <CouponCardFooterActionBtn
               onPress={() => {
-                navigation.navigate('CouponScreen', {
-                  screen: 'EditCoupon',
-                  params: {singleCoupon: coupon},
-                });
+                navigation.navigate('EditCoupon', {singleCoupon: coupon});
               }}>
               <Icon name="pencil" size={15} color="#000" />
             </CouponCardFooterActionBtn>
@@ -110,9 +115,11 @@ const AllCouponsView = ({navigation}) => {
                     {
                       text: 'OK',
                       onPress: () =>
+                      {
                         deleteCoupon({
                           variables: {id: coupon.id},
-                        }),
+                        })
+                      }
                     },
                   ],
                   {cancelable: false},

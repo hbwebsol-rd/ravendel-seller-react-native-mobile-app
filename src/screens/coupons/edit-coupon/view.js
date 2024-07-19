@@ -11,7 +11,7 @@ import {
 import BottomDivider from '../../components/bottom-divider';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import CustomPicker from '../../components/custom-picker';
-import {isEmpty} from '../../../utils/helper';
+import {getCheckedIds, isEmpty} from '../../../utils/helper';
 import {Text, Alert} from 'react-native';
 import moment from 'moment';
 import {UPDATE_COUPON} from '../../../queries/couponQueries';
@@ -22,13 +22,17 @@ import {useMutation} from '@apollo/client';
 import FormActionsComponent from '../../components/formAction';
 import MulipleSelect from '../../components/multiple-selection';
 import {GraphqlError, GraphqlSuccess} from '../../components/garphqlMessages';
+import EditCategoriesComponent from '../../components/edit-category';
+import {ALERT_ERROR, ALERT_SUCCESS} from '../../../store/reducer/alert';
+import {useDispatch} from 'react-redux';
 
 const discountType = [
   {label: 'Fixed Amount Discount', value: 'amount-discount'},
-  {label: 'Fixed Percantage Discount', value: 'precantage-discount'},
+  {label: 'Fixed Percentage Discount', value: 'precantage-discount'},
 ];
 
 const EditCouponsForm = ({navigation, singleCouponDetail}) => {
+  const dispatch = useDispatch();
   const {
     loading: productsLoading,
     error: productsError,
@@ -40,7 +44,6 @@ const EditCouponsForm = ({navigation, singleCouponDetail}) => {
     error: categoriesError,
     data: categoriesData,
   } = useQuery(GET_CATEGORIES);
-  console.log(productsData, 'prodcdata');
   const products = productsData?.products?.data;
   const allCategories = categoriesData?.productCategories?.data;
 
@@ -49,8 +52,13 @@ const EditCouponsForm = ({navigation, singleCouponDetail}) => {
       GraphqlError(error);
     },
     onCompleted: data => {
-      GraphqlSuccess('Updated successfully');
-      navigation.goBack();
+      if (data.updateCoupon.success) {
+        // console.log(data);
+        dispatch({type: ALERT_SUCCESS, payload: data.updateCoupon.message});
+        navigation.goBack();
+      } else {
+        dispatch({type: ALERT_ERROR, payload: data.updateCoupon.message});
+      }
     },
   });
   const [couponForm, setCouponForm] = useState({});
@@ -58,48 +66,125 @@ const EditCouponsForm = ({navigation, singleCouponDetail}) => {
   const [validation, setValdiation] = useState({
     code: '',
     description: '',
-    discount_value: '',
+    discountValue: '',
   });
 
+  const filterTreeData = data => {
+    return data?.reduce((acc, category) => {
+      const filteredCategory = {
+        id: category?.id,
+        name: category.name,
+        checked: category.checked,
+        url: category.url,
+      };
+      if (category?.children && category?.children?.length > 0) {
+        filteredCategory.children = category?.children;
+      }
+
+      if (category?.checked) {
+        acc.push(filteredCategory);
+      } else if (category?.children && category?.children?.length > 0) {
+        filteredCategory.children = filterTreeData(category?.children);
+        if (filteredCategory.children.length > 0) {
+          acc.push(filteredCategory);
+        }
+      }
+
+      return acc;
+    }, []);
+  };
   useEffect(() => {
     if (singleCouponDetail) {
-      setCouponForm(singleCouponDetail);
+      console.log(singleCouponDetail, ' coupon details');
+      const {
+        category,
+        code,
+        date,
+        description,
+        discountType,
+        discountValue,
+        excludeCategories,
+        excludeProducts,
+        expire,
+        freeShipping,
+        id,
+        includeCategories,
+        includeProducts,
+        maximumSpend,
+        minimumSpend,
+        product,
+        updated,
+        categoryTree,
+      } = singleCouponDetail;
+      const newCoupon = {
+        __typename: 'Coupon',
+        category: true,
+        code: code,
+        date: date,
+        description: description,
+        discountType: discountType,
+        discountValue: discountValue && discountValue.toString(),
+        // excludeCategories: [],
+        // excludeProducts: [],
+        expire: expire,
+        freeShipping: freeShipping,
+        id: id,
+        includeCategories: includeCategories,
+        // includeProducts: [],
+        maximumSpend: maximumSpend && maximumSpend.toString(),
+        minimumSpend: minimumSpend && minimumSpend.toString(),
+        product: null,
+        updated: updated,
+        categoryTree: categoryTree,
+      };
+      setCouponForm(newCoupon);
     }
   }, [singleCouponDetail]);
-
+  console.log(couponForm, ' cpf');
   const UpdateCouponCodeForm = () => {
     if (couponForm.code === '') {
-      setValdiation({...validation, code: 'Required'});
+      setValdiation({...validation, code: 'Code is required'});
     } else if (couponForm.description === '') {
-      setValdiation({...validation, code: '', description: 'Required'});
-    } else if (couponForm.discount_value === '') {
+      setValdiation({
+        ...validation,
+        code: '',
+        description: 'description is required',
+      });
+    } else if (couponForm.discountValue === '' || couponForm.discountValue == 0) {
       setValdiation({
         ...validation,
         code: '',
         description: '',
-        discount_value: 'Required',
+        discountValue: 'Discount value is required',
       });
     } else {
       setValdiation({
         ...validation,
         code: '',
         description: '',
-        discount_value: '',
+        discountValue: '',
       });
+
+      const filteredData = filterTreeData(couponForm.categoryTree);
+
+      console.log(couponForm, ' popo');
       var updateObejct = {
         id: couponForm.id,
         code: couponForm.code,
         description: couponForm.description,
-        discount_type: couponForm.discount_type,
-        discount_value: couponForm.discount_value,
-        free_shipping: couponForm.free_shipping,
+        discountType: couponForm.discountType,
+        discountValue: Number(couponForm.discountValue),
+        freeShipping: couponForm.freeShipping,
         expire: couponForm.expire,
-        minimum_spend: couponForm.minimum_spend,
-        maximum_spend: couponForm.maximum_spend,
-        products: couponForm.products,
-        exclude_products: couponForm.exclude_products,
-        categories: couponForm.categories,
-        exclude_categories: couponForm.exclude_categories,
+        minimumSpend: Number(couponForm.minimumSpend),
+        maximumSpend: Number(couponForm.maximumSpend),
+        // products: couponForm.products,
+        // exclude_products: couponForm.exclude_products,
+        // categories: couponForm.categories,
+        category: true,
+        includeCategories: couponForm.categoryId,
+        categoryTree: filteredData,
+        // exclude_categories: couponForm.exclude_categories,
       };
       updateCoupon({variables: updateObejct});
     }
@@ -150,12 +235,12 @@ const EditCouponsForm = ({navigation, singleCouponDetail}) => {
               />
               <Input
                 label="Coupon Amount"
-                value={couponForm.discount_value}
+                value={couponForm.discountValue}
                 onChangeText={value =>
-                  setCouponForm({...couponForm, ['discount_value']: value})
+                  setCouponForm({...couponForm, ['discountValue']: value})
                 }
                 keyboardType="numeric"
-                errorMessage={validation.discount_value}
+                errorMessage={validation.discountValue}
               />
               <CouponExpiryBtn onPress={showDatePicker}>
                 <CouponExpiryLabel>Coupon Expiry</CouponExpiryLabel>
@@ -168,16 +253,17 @@ const EditCouponsForm = ({navigation, singleCouponDetail}) => {
                 mode="date"
                 onConfirm={handleConfirm}
                 onCancel={hideDatePicker}
+                minimumDate={new Date()}
               />
               <CustomPicker
                 iosDropdown
                 pickerKey="label"
                 pickerVal="value"
                 androidPickerData={discountType}
-                selectedValue={couponForm.discount_type}
+                selectedValue={couponForm.discountType}
                 iosPickerData={discountType}
                 pickerValChange={val =>
-                  setCouponForm({...couponForm, ['discount_type']: val})
+                  setCouponForm({...couponForm, ['discountType']: val})
                 }
                 placeholder="Please Select"
                 label="Discount Type"
@@ -187,21 +273,42 @@ const EditCouponsForm = ({navigation, singleCouponDetail}) => {
               <Input
                 keyboardType="numeric"
                 label="Minimum Spend"
-                value={couponForm.minimum_spend}
+                value={couponForm.minimumSpend}
                 onChangeText={value =>
-                  setCouponForm({...couponForm, ['minimum_spend']: value})
+                  setCouponForm({...couponForm, ['minimumSpend']: value})
                 }
               />
               <Input
                 keyboardType="numeric"
-                label="Maximum Spend"
-                value={couponForm.maximum_spend}
+                label="Discount upto"
+                value={couponForm.maximumSpend}
                 onChangeText={value =>
-                  setCouponForm({...couponForm, ['maximum_spend']: value})
+                  setCouponForm({...couponForm, ['maximumSpend']: value})
                 }
               />
-              {console.log(products, 'promultiple')}
-              {products && products.length ? (
+              <EditCategoriesComponent
+                data={allCategories}
+                selectedCategoriesTree={couponForm.categoryTree}
+                selectedCategories={couponForm.categories}
+                onCategoryChange={items => {
+                  if (items && items?.length > 0) {
+                    const checkedIds = getCheckedIds(items);
+
+                    setCouponForm({
+                      ...couponForm,
+                      categoryId: checkedIds,
+                      categoryTree: items,
+                    });
+                  } else {
+                    setCouponForm({
+                      ...couponForm,
+                      categoryId: [],
+                      categoryTree: [],
+                    });
+                  }
+                }}
+              />
+              {/* {products && products.length ? (
                 <>
                   <MulipleSelect
                     items={products}
@@ -230,9 +337,9 @@ const EditCouponsForm = ({navigation, singleCouponDetail}) => {
                     value="id"
                   />
                 </>
-              ) : null}
+              ) : null} */}
 
-              {allCategories && allCategories.length ? (
+              {/* {allCategories && allCategories.length ? (
                 <>
                   <MulipleSelect
                     items={allCategories}
@@ -261,7 +368,7 @@ const EditCouponsForm = ({navigation, singleCouponDetail}) => {
                     value="id"
                   />
                 </>
-              ) : null}
+              ) : null} */}
             </FormWrapper>
           </EditCouponWrapper>
         </>
