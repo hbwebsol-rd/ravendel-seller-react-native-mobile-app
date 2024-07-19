@@ -1,9 +1,8 @@
 import styled from 'styled-components';
 import Colors from '../../../utils/color';
+import ThemeColor from '../../../utils/color';
 
-export const AttributesWrapper = styled.ScrollView`
-  padding: 10px;
-`;
+export const AttributesWrapper = styled.ScrollView``;
 export const AttrCard = styled.View`
   width: 100%;
   margin: 1% 0;
@@ -22,9 +21,8 @@ export const AttrActionBtn = styled.TouchableOpacity`
   margin-left: 5px;
 `;
 export const AttrName = styled.Text`
-  font-size: 18px;
+  font-size: 14px;
   letter-spacing: 0.5px;
-  margin-bottom: 10px;
   font-weight: bold;
   color: ${Colors.primaryColor};
 `;
@@ -35,6 +33,7 @@ export const AttrValTitle = styled.Text`
 `;
 export const AttrVal = styled.Text`
   font-size: 14px;
+  color:${ThemeColor.blackColor}
 `;
 export const AttrValWrapper = styled.View`
   margin-top: 10px;

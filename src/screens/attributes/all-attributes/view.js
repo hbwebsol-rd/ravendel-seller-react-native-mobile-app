@@ -1,5 +1,12 @@
 import React, {useEffect, useState} from 'react';
-import {Alert, FlatList, Text, View} from 'react-native';
+import {
+  Alert,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import {
   AttributesWrapper,
   AttrCard,
@@ -24,10 +31,11 @@ import {useMutation} from '@apollo/client';
 import MainContainer from '../../components/mainContainer';
 import {GraphqlError, GraphqlSuccess} from '../../components/garphqlMessages';
 import {Input} from '@rneui/base';
-import {isEmpty} from '../../../utils/helper';
+import {capitalizeFirstLetter, isEmpty, wait} from '../../../utils/helper';
 
 const AllAttributesView = ({navigation}) => {
   const isFocused = useIsFocused();
+  const [refreshing, setRefreshing] = useState(false);
   const {loading, error, data, refetch} = useQuery(GET_ATTRIBUTES, {
     notifyOnNetworkStatusChange: true,
   });
@@ -65,6 +73,12 @@ const AllAttributesView = ({navigation}) => {
     setInpvalue(e);
   };
 
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    refetch();
+    wait(2000).then(() => setRefreshing(false));
+  }, []);
+
   useEffect(() => {
     let array;
     if (isEmpty(inpvalue)) {
@@ -85,7 +99,7 @@ const AllAttributesView = ({navigation}) => {
     <>
       <AttrCard key={i}>
         <AttrHeader>
-          <AttrName>{attr.name}</AttrName>
+          <AttrName>{capitalizeFirstLetter(attr.name)}</AttrName>
           <AttrActionWrapper>
             <AttrActionBtn
               onPress={() => {
@@ -139,46 +153,81 @@ const AllAttributesView = ({navigation}) => {
     return <AppLoader />;
   }
   return (
-    <MainContainer>
-      <AttributesWrapper>
-        {/* {loading && <AppLoader />} */}
-        {error && <Text>Something went wrong. Please try again later</Text>}
+    <View style={{flex: 1}}>
+      {/* <AttributesWrapper> */}
+      {/* {loading && <AppLoader />} */}
+      {error && <Text>Something went wrong. Please try again later</Text>}
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+        }}>
         <Input
+          containerStyle={{
+            height: 70,
+            width: '100%',
+          }}
+          inputContainerStyle={styles.inputStyle}
+          label=""
+          value={inpvalue}
+          onChangeText={handleinpiut}
+          placeholder="Search Attributes"
+          leftIcon={() => <Icon name="search" color="gray" size={16} />}
+          leftIconContainerStyle={{marginLeft: 15}}
+        />
+        {/* <TouchableOpacity
+            style={styles.filter}
+            onPress={() => setOpenModal(true)}>
+            <Icon name="filter" color="gray" size={30} />
+          </TouchableOpacity> */}
+      </View>
+      {/* <Input
           // keyboardType="numeric"
           // type="number"
           label="Search Attribute"
           value={inpvalue}
           onChangeText={handleinpiut}
-        />
-        {data && data.productAttributes && (
-          <>
-            <FlatList
-              initialNumToRender={10}
-              keyboardShouldPersistTaps="always"
-              showsVerticalScrollIndicator={false}
-              // refreshControl={
-              //   <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-              // }
-              data={AllAttribute}
-              renderItem={renderItem}
-              ListEmptyComponent={() => (
-                <View>
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      alignSelf: 'center',
-                      color: 'grey',
-                    }}>
-                    No Records Found
-                  </Text>
-                </View>
-              )}
-            />
-          </>
-        )}
-      </AttributesWrapper>
-    </MainContainer>
+        /> */}
+      {data && data.productAttributes && (
+        <>
+          <FlatList
+            contentContainerStyle={{
+              marginHorizontal: 10,
+            }}
+            initialNumToRender={10}
+            keyboardShouldPersistTaps="always"
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+            data={AllAttribute}
+            renderItem={renderItem}
+            ListEmptyComponent={() => (
+              <View>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    alignSelf: 'center',
+                    color: 'grey',
+                  }}>
+                  No Records Found
+                </Text>
+              </View>
+            )}
+          />
+        </>
+      )}
+      {/* </AttributesWrapper> */}
+    </View>
   );
 };
 
 export default AllAttributesView;
+const styles = StyleSheet.create({
+  inputStyle: {
+    borderBottomWidth: 0,
+    borderBottomColor: 'black',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+  },
+});

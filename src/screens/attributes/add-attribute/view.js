@@ -9,6 +9,7 @@ import {GraphqlError, GraphqlSuccess} from '../../components/garphqlMessages';
 import CustomCheckbox from '../../components/custom-checkbox';
 import {ALERT_ERROR} from '../../../store/reducer/alert';
 import {useDispatch} from 'react-redux';
+import {SPECIAL_CHARACTER_REGEX, isEmpty} from '../../../utils/helper';
 
 const AddAttrView = ({navigation}) => {
   const dispatch = useDispatch();
@@ -45,10 +46,16 @@ const AddAttrView = ({navigation}) => {
   });
 
   const AddAttributeSubmit = () => {
-    if (attribute.name === '') {
-      setValdiation({...validation, name: 'Required'});
-    } else if (attribute.value === '') {
-      setValdiation({...validation, name: '', value: 'Required'});
+    if (isEmpty(attribute.name)) {
+      setValdiation({...validation, name: 'Name is required'});
+    } else if (isEmpty(attribute.value)) {
+      setValdiation({...validation, name: '', value: 'Value is required'});
+    } else if (!SPECIAL_CHARACTER_REGEX.test(attribute.value)) {
+      setValdiation({
+        ...validation,
+        name: '',
+        value: 'Attribute should contain only letters and numbers',
+      });
     } else {
       setValdiation({
         ...validation,
@@ -58,17 +65,17 @@ const AddAttrView = ({navigation}) => {
       var string = attribute.value;
       var valuesArray = string.split('\n').map(val => {
         return {
-          name: val,
+          name: val.trim(),
         };
       });
       attribute.arrayValue = valuesArray;
       setAttribute({...attribute});
-
       var attrObject = {
-        name: attribute.name,
+        name: attribute.name.trim(),
         values: attribute.arrayValue,
         allow_filter: attribute.allow_filter,
       };
+      console.log('addattribute payload', attrObject);
       addAttribute({
         variables: {
           attribute: attrObject,

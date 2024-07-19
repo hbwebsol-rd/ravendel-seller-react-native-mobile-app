@@ -7,7 +7,7 @@ import {
   UPDATE_ATTRIBUTE,
   GET_ATTRIBUTE,
 } from '../../../queries/attributesQueries';
-import {isEmpty} from '../../../utils/helper';
+import {SPECIAL_CHARACTER_REGEX, isEmpty} from '../../../utils/helper';
 import FormActionsComponent from '../../components/formAction';
 import {GraphqlError, GraphqlSuccess} from '../../components/garphqlMessages';
 import CustomCheckbox from '../../components/custom-checkbox';
@@ -28,7 +28,7 @@ const EditAttrView = ({navigation, singleAttrID}) => {
     if (data && data.productAttribute) {
       setLoadingState(false);
       var valuesArray = data.productAttribute.data.values;
-      var string = valuesArray.map(val => val.name).join('\n');
+      var string = valuesArray && valuesArray.map(val => val.name).join('\n');
       data.productAttribute.data.values = string;
       const newAttribute = {
         name: data.productAttribute.data.name,
@@ -70,9 +70,15 @@ const EditAttrView = ({navigation, singleAttrID}) => {
   );
   const updateAttrSubmit = () => {
     if (attribute.name === '') {
-      setValdiation({...validation, name: 'Required'});
+      setValdiation({...validation, name: 'Name is required'});
     } else if (attribute.value === '') {
-      setValdiation({...validation, name: '', value: 'Required'});
+      setValdiation({...validation, name: '', value: 'Value is required'});
+    } else if (!SPECIAL_CHARACTER_REGEX.test(attribute.value)) {
+      setValdiation({
+        ...validation,
+        name: '',
+        value: 'Attribute should contain only letters and numbers',
+      });
     } else {
       setValdiation({
         ...validation,
@@ -86,15 +92,14 @@ const EditAttrView = ({navigation, singleAttrID}) => {
         if (hasOldVal.length > 0) {
           return hasOldVal[0];
         } else {
-          return {name: val};
+          return {name: val.trim()};
         }
       });
       attribute.values = valuesArray;
       setAttribute({...attribute});
-
       var attrObject = {
         id: singleAttrID,
-        name: attribute.name,
+        name: attribute.name.trim(),
         values: valuesArray,
         allow_filter: attribute.allow_filter,
       };
