@@ -13,17 +13,22 @@ import {
 import CustomPicker from '../../components/custom-picker';
 import FormActionsComponent from '../../components/formAction';
 import {GraphqlError, GraphqlSuccess} from '../../components/garphqlMessages';
-import {unflatten} from '../../../utils/helper';
+import {BASE_URL, unflatten} from '../../../utils/helper';
 import {Picker} from '@react-native-picker/picker';
-import {Text} from 'react-native';
+import {Text, View} from 'react-native';
 import URLComponents from '../../components/urlComponents';
 import {mutation} from '../../../utils/service';
+import ThemeColor from '../../../utils/color';
+import Multiselect from '../../components/multiselect';
+import {ALERT_ERROR, ALERT_SUCCESS} from '../../../store/reducer/alert';
+import {useDispatch} from 'react-redux';
 var categoryObject = {
   name: '',
   parentId: null,
   description: '',
   url: '',
   image: '',
+  thumbnail_image: '',
   meta: {
     title: '',
     description: '',
@@ -32,6 +37,8 @@ var categoryObject = {
 };
 
 const AddCategoryView = ({navigation}) => {
+  const dispatch = useDispatch();
+
   const Categories = useQuery(GET_CATEGORIES);
   const [categoryForm, setCategoryForm] = useState(categoryObject);
   const [allCategories, setAllCategories] = useState([]);
@@ -46,24 +53,55 @@ const AddCategoryView = ({navigation}) => {
       GraphqlError(error);
     },
     onCompleted: data => {
-      GraphqlSuccess('Added successfully');
-      setCategoryForm(categoryObject);
-      navigation.goBack();
+      console.log(data);
+      if (data.addProductCategory.success) {
+        // GraphqlSuccess('Added successfully');
+        dispatch({type: ALERT_SUCCESS, payload: data.addProductCategory.message});
+        setCategoryForm(categoryObject);
+        navigation.goBack();
+      } else {
+        dispatch({type: ALERT_ERROR, payload: data.addProductCategory.message});
+      }
     },
   });
 
   const AddCategoryForm = () => {
     if (categoryForm.name === '') {
-      setValdiation({...validation, name: 'Required'});
+      setValdiation({...validation, name: 'Name is required'});
     } else if (categoryForm.description === '') {
-      setValdiation({...validation, name: '', description: 'Required'});
+      setValdiation({
+        ...validation,
+        name: '',
+        description: 'Description is required',
+      });
     } else {
       setValdiation({
         ...validation,
         name: '',
         description: '',
       });
-      addCategory({variables: categoryForm});
+      const catDetail = {
+        name: categoryForm.name.trim(),
+        parentId: categoryForm.parentId,
+        description: categoryForm.description.trim(),
+        url: categoryForm.url,
+        // image: [categoryForm.image],
+        // thumbnail_image: [categoryForm.thumbnail_image],
+        meta: {
+          title: categoryForm.meta.title,
+          description: categoryForm.meta.description,
+          keywords: categoryForm.meta.keywords,
+        },
+      };
+
+      if (categoryForm.image) {
+        catDetail.image = [categoryForm.image];
+      }
+      if (categoryForm.thumbnail_image) {
+        catDetail.thumbnail_image = [categoryForm.thumbnail_image];
+      }
+      console.log('Add category payload', catDetail);
+      addCategory({variables: catDetail});
     }
   };
 
@@ -73,7 +111,7 @@ const AddCategoryView = ({navigation}) => {
         JSON.stringify(Categories.data.productCategories.data),
       );
       if (selectedCat && selectedCat.length) {
-        setAllCategories(unflatten(selectedCat));
+        setAllCategories(selectedCat);
       }
     }
   }, [Categories.data]);
@@ -131,9 +169,29 @@ const AddCategoryView = ({navigation}) => {
             updatePermalink={value => inputChange('url', value)}
           />
           <Text style={{fontSize: 15, marginLeft: 8, fontWeight: '600'}}>
-            Parent Cateogry
+            Parent Category
           </Text>
-          <Picker
+          <Multiselect
+            height={50}
+            inititalselect={categoryForm.parentId}
+            fieldname={'name'}
+            ibw={0}
+            inputBgColor={ThemeColor.whiteColor}
+            data={allCategories ? allCategories : []}
+            onchange={(name, itemValue) => {
+              setCategoryForm({...categoryForm, ['parentId']: itemValue});
+            }}
+            placeholder={''}
+            ibbw={0.9}
+            color="black"
+            borderBottomColor={'#3C3C4360'}
+            padding={0}
+            searchenabled={true}
+            fs={15}
+            paddingLeft={0}
+            fontColr={'#707070'}
+          />
+          {/* <Picker
             style={{marginBottom: 10}}
             selectedValue={categoryForm.parentId}
             onValueChange={itemValue => {
@@ -143,8 +201,9 @@ const AddCategoryView = ({navigation}) => {
             {allCategories.map(value => (
               <Picker.Item key={value.id} label={value.name} value={value.id} />
             ))}
-          </Picker>
+          </Picker> */}
           <Input
+            labelStyle={{marginTop: 10}}
             label="Description"
             value={categoryForm.description}
             onChangeText={value =>
@@ -155,16 +214,47 @@ const AddCategoryView = ({navigation}) => {
             errorMessage={validation.description}
           />
 
-          <FeaturedImageComponents
-            image={categoryForm.image}
-            inputChange={img => {
-              setCategoryForm({...categoryForm, ['image']: img});
-            }}
-            removeImage={() =>
-              setCategoryForm({...categoryForm, ['image']: ''})
-            }
-          />
-
+          <View>
+            <Text
+              style={{
+                fontSize: 15,
+                marginLeft: 8,
+                fontWeight: '600',
+                color: ThemeColor.blackColor,
+              }}>
+              Upload Feature Image
+            </Text>
+            <FeaturedImageComponents
+              image={categoryForm.image}
+              inputChange={img => {
+                setCategoryForm({...categoryForm, ['image']: img});
+              }}
+              removeImage={() =>
+                setCategoryForm({...categoryForm, ['image']: ''})
+              }
+            />
+          </View>
+          <View>
+            <Text
+              style={{
+                fontSize: 15,
+                marginLeft: 8,
+                fontWeight: '600',
+                marginTop: 10,
+                color: ThemeColor.blackColor,
+              }}>
+              Upload Thumbnail Image
+            </Text>
+            <FeaturedImageComponents
+              image={categoryForm.thumbnail_image}
+              inputChange={img => {
+                setCategoryForm({...categoryForm, ['thumbnail_image']: img});
+              }}
+              removeImage={() =>
+                setCategoryForm({...categoryForm, ['thumbnail_image']: ''})
+              }
+            />
+          </View>
           <MetaSectiontitle>Meta</MetaSectiontitle>
           <Input
             label="Meta Title"

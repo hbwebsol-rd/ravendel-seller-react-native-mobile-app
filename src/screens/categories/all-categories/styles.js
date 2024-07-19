@@ -13,7 +13,9 @@ export const CategoryWrapper = styled.View`
   border-bottom-width: 1px;
   border-bottom-color: #eee;
 `;
-export const CategoryName = styled.Text``;
+export const CategoryName = styled.Text`
+  color: #000;
+`;
 export const CategoryAction = styled.View`
   flex-direction: row;
   align-items: center;
