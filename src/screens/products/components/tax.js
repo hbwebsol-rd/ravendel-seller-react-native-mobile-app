@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import {Picker} from '@react-native-picker/picker';
 import {isEmpty} from '../../../utils/helper';
+import ThemeColor from '../../../utils/color';
 
 const TaxComponent = ({taxState, onTaxChange, tax_class}) => {
   return (
@@ -9,6 +10,7 @@ const TaxComponent = ({taxState, onTaxChange, tax_class}) => {
       {!isEmpty(taxState) ? (
         !taxState.data.global.is_global ? (
           <Picker
+            style={{color: ThemeColor.blackColor}}
             selectedValue={tax_class}
             onValueChange={(itemValue, itemIndex) => {
               onTaxChange(itemValue);

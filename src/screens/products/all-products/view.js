@@ -42,6 +42,7 @@ import {
   formatCurrency,
   URL,
   wait,
+  capitalizeFirstLetter,
 } from '../../../utils/helper';
 import Colors from '../../../utils/color';
 import AppLoader from '../../components/loader';
@@ -73,7 +74,7 @@ const AllProductsView = ({navigation, RefecthAllProducts, stopReload}) => {
   );
 
   const picker = [
-    {label: 'Pushbish', value: 'publish'},
+    {label: 'Publish', value: 'publish'},
     {label: 'Draft', value: 'draft'},
   ];
 
@@ -119,7 +120,6 @@ const AllProductsView = ({navigation, RefecthAllProducts, stopReload}) => {
 
   const applyFilter = () => {
     const filterdata = data?.products?.data?.filter(data => {
-      // console.log(data, ' d1');
       const matchesSearch = inpvalue
         ? Object.values(data).some(val => {
             return String(val).toLowerCase().includes(inpvalue.toLowerCase());
@@ -188,7 +188,7 @@ const AllProductsView = ({navigation, RefecthAllProducts, stopReload}) => {
             numberOfLines={2}
             ellipsizeMode="tail"
             style={styles.productName}>
-            {product.name}
+            {capitalizeFirstLetter(product.name)}
           </Text>
           {product.pricing.sellprice < product.pricing.price ? (
             <ProductPriceWrapper>
@@ -208,7 +208,8 @@ const AllProductsView = ({navigation, RefecthAllProducts, stopReload}) => {
               </ProductHasSellPrice>
               {product.pricing.discountPercentage &&
               product.pricing.discountPercentage > 0 ? (
-                <ProductSellPrice style={{marginLeft: 8}}>
+                <ProductSellPrice
+                  style={{marginLeft: 8, color: ThemeColor.deleteColor}}>
                   {product.pricing.discountPercentage}% Off
                 </ProductSellPrice>
               ) : null}
@@ -332,26 +333,16 @@ const AllProductsView = ({navigation, RefecthAllProducts, stopReload}) => {
           }}>
           <Text style={{fontSize: 16}}>Filter</Text>
 
-          {true ? (
+          {!isEmpty(productStatus) ? (
             <TouchableOpacity
               onPress={() => handleClear()}
-              // style={{
-              //   marginTop: 5,
-              //   alignSelf: 'center',
-              //   width: '45%',
-              //   paddingVertical: 10,
-              //   backgroundColor: ThemeColor.grayColor,
-              //   justifyContent: 'center',
-              //   alignItems: 'center',
-              //   borderRadius: 8,
-              // }}
             >
               <Text style={{color: Colors.primaryColor, fontSize: 14}}>
                 Clear Filter
               </Text>
             </TouchableOpacity>
           ) : (
-            ''
+            null
           )}
         </View>
         <CustomPicker
@@ -376,7 +367,7 @@ const AllProductsView = ({navigation, RefecthAllProducts, stopReload}) => {
             marginTop: 15,
           }}>
           <TouchableOpacity
-            onPress={() => setOpenModal(false)}
+            onPress={() => { setProductStatus('');setOpenModal(false)}}
             style={styles.cancelBtn}>
             <Text style={{color: '#fff', fontSize: 16}}>Cancel</Text>
           </TouchableOpacity>

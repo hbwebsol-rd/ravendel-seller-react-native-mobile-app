@@ -39,6 +39,7 @@ export const FeaturedImageUploadText = styled.Text`
   font-size: 18px;
   text-transform: uppercase;
   opacity: 0.5;
+  color: #000;
 `;
 export const FeatureImageWrapper = styled.View`
   margin-top: 10px;

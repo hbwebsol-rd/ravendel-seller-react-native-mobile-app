@@ -12,6 +12,7 @@ import {
   AccordionBody,
 } from '../components/accordion-styles';
 import styled from 'styled-components';
+import ThemeColor from '../../../utils/color';
 
 const ShippingComponent = ({
   shippingState,
@@ -46,13 +47,14 @@ const ShippingComponent = ({
           {!isEmpty(shippingState) ? (
             !shippingState.data.global.is_global ? (
               <Picker
+                style={{color: ThemeColor.blackColor}}
                 selectedValue={shipping.shippingClass}
                 onValueChange={(itemValue, itemIndex) => {
                   onShipppingChange(itemValue);
                 }}>
                 <Picker.Item
                   value={null}
-                  label={'Select Tax'}
+                  label={'Select Shipping'}
                   color="rgba(0,0,0,0.5)"
                 />
                 {shippingState.data.shippingClass.map((shipping_c, index) => {
@@ -78,28 +80,28 @@ const ShippingComponent = ({
             type="number"
             label="Height"
             value={shipping.height.toString()}
-            onChangeText={value => onShippingInput('height', parseInt(value))}
+            onChangeText={value => onShippingInput('height', value)}
           />
           <Input
             keyboardType="numeric"
             type="number"
             label="Width"
             value={shipping.width.toString()}
-            onChangeText={value => onShippingInput('width', parseInt(value))}
+            onChangeText={value => onShippingInput('width', value)}
           />
           <Input
             keyboardType="numeric"
             type="number"
             label="Depth"
             value={shipping.depth.toString()}
-            onChangeText={value => onShippingInput('depth', parseInt(value))}
+            onChangeText={value => onShippingInput('depth', value)}
           />
           <Input
             keyboardType="numeric"
             type="number"
             label="Weigth"
             value={shipping.weight.toString()}
-            onChangeText={value => onShippingInput('weight', parseInt(value))}
+            onChangeText={value => onShippingInput('weight', value)}
           />
         </ShippingWrapper>
       </AccordionBody>

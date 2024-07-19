@@ -31,6 +31,7 @@ import {useDispatch} from 'react-redux';
 import {ALERT_ERROR, ALERT_SUCCESS} from '../../../store/reducer/alert';
 import Multiselect from '../../components/multiselect';
 import ThemeColor from '../../../utils/color';
+import {ColorSpace} from 'react-native-reanimated';
 
 var addObject = {
   name: 'Test',
@@ -235,7 +236,6 @@ const AddProductsScreen = ({navigation}) => {
 
   const onNestedObjectValueChange = (object, name, value) => {
     addProductDetail[object][name] = value;
-    console.log(addProductDetail, typeof value, ' add pro');
     setAddProductDetail({...addProductDetail});
   };
 
@@ -368,6 +368,7 @@ const AddProductsScreen = ({navigation}) => {
 
     const result = [];
     emptyGroup = false;
+    console.log(JSON.stringify(groups), ' grr');
     groups.forEach((group, index) => {
       if (
         isEmpty(group.name) ||
@@ -462,106 +463,135 @@ const AddProductsScreen = ({navigation}) => {
       details.gallery_image = gallery_image;
     }
     console.log('Product Payload', details);
+    // return;
     addProduct({variables: details});
   };
 
-  const hideAlert = () => {
-    setShowAlert(false);
+  const removeItemFromGroup = index => {
+    console.log('hiii');
+    const newArray = groups.filter((_, i) => i !== index);
+    setGroups(newArray);
   };
+
+  const removeValueAtIndex = (dataIndex, valueIndex) => {
+    setGroups(prevData =>
+      prevData.map((item, index) =>
+        index === dataIndex
+          ? {
+              ...item,
+              attributes: item.attributes.filter((_, i) => i !== valueIndex),
+            }
+          : item,
+      ),
+    );
+  };
+  // console.log(addProductDetail, groups, ' adp');
 
   return (
     <>
       {AddLoading || loader ? <AppLoader /> : null}
       <AppHeader title="Add Product" navigation={navigation} back />
-      <Text style={{fontSize: 15, marginLeft: 8, fontWeight: '600'}}>
+      <Text
+        style={{
+          fontSize: 15,
+          marginLeft: 8,
+          fontWeight: '600',
+          color: ThemeColor.blackColor,
+        }}>
         Clone Product
       </Text>
-      <View style={{marginHorizontal: 10, marginBottom: 10}}>
-        <Multiselect
-          inititalselect={product}
-          hmt={15}
-          heading={''}
-          height={45}
-          fieldname={'attribute'}
-          marginTop={10}
-          ibw={1}
-          inputBgColor={ThemeColor.whiteColor}
-          // placeholderFont={FontStyle.fontRegular}
-          data={allProducts ?? []}
-          onchange={async (name, singleProductid) => {
-            if (singleProductid) {
-              const response = await query(GET_PRODUCT, {id: singleProductid});
-              const singleProduct = response.data.product.data;
+      {/* <View style={{marginHorizontal: 10, marginBottom: 10}}> */}
+      <Multiselect
+        inititalselect={product}
+        hmt={15}
+        heading={''}
+        height={45}
+        fieldname={'attribute'}
+        marginTop={10}
+        ibw={1}
+        inputBgColor={ThemeColor.whiteColor}
+        // placeholderFont={FontStyle.fontRegular}
+        data={allProducts ?? []}
+        onchange={async (name, singleProductid) => {
+          if (singleProductid) {
+            const response = await query(GET_PRODUCT, {id: singleProductid});
+            const singleProduct = response.data.product.data;
 
-              // const singleProduct0 = allProducts.filter(
-              //   item => item._id === singleProductid,
-              // )[0];
-              const cvdata = singleProduct.specifications
-                ? convertData(singleProduct.specifications)
-                : [];
-              const newData = {
-                _id: singleProduct._id,
-                name: singleProduct.name,
-                description: singleProduct.description,
-                url: singleProduct.url,
-                categoryId: singleProduct.categoryId?.map(cat => cat.id),
-                categoryTree: singleProduct?.categoryTree || [],
-                brand: singleProduct.brand.id,
-                pricing: {
-                  price: singleProduct.pricing.price,
-                  sellprice: singleProduct.pricing.sellprice,
-                },
-                status: singleProduct.status,
-                meta: {
-                  description: singleProduct?.meta?.description,
-                  keywords: singleProduct?.meta?.keywords,
-                  title: singleProduct?.meta?.title,
-                },
-                shipping: {
-                  depth: singleProduct.shipping.depth,
-                  height: singleProduct.shipping.height,
-                  shippingClass: singleProduct.shipping.shippingClass,
-                  weight: singleProduct.shipping.weight,
-                  width: singleProduct.shipping.width,
-                },
-                tax_class: singleProduct.taxClass,
-                feature_product: singleProduct.feature_product,
-                product_type: singleProduct.product_type,
-                quantity: singleProduct.quantity,
-                sku: singleProduct.sku,
-                feautred_image: singleProduct.feature_image,
-                gallery_image: singleProduct.gallery_image,
-                attribute: [],
-                variant: [],
-                short_description: 'NA',
-                custom_field: [],
-              };
-              if (singleProduct.feature_image) {
-                setFeaturedImage(BASE_URL + singleProduct.feature_image);
-              }
-              if (singleProduct.gallery_image.length > 0) {
-                var allGalleryImage = singleProduct.gallery_image.map(
-                  gallery => BASE_URL + gallery,
-                );
-                setGalleryImages(allGalleryImage);
-              }
-              setAddProductDetail(newData);
-              setProduct(singleProduct);
-              setGroups(cvdata);
+            // const singleProduct0 = allProducts.filter(
+            //   item => item._id === singleProductid,
+            // )[0];
+            const cvdata = singleProduct.specifications
+              ? convertData(singleProduct.specifications)
+              : [];
+            console.log(singleProduct.gallery_image, []);
+            const newData = {
+              _id: singleProduct._id,
+              name: singleProduct.name,
+              description: singleProduct.description,
+              url: singleProduct.url,
+              categoryId: singleProduct.categoryId?.map(cat => cat.id),
+              categoryTree: singleProduct?.categoryTree || [],
+              brand: singleProduct.brand.id,
+              pricing: {
+                price: singleProduct.pricing.price,
+                sellprice: singleProduct.pricing.sellprice,
+              },
+              status: singleProduct.status,
+              meta: {
+                description: singleProduct?.meta?.description,
+                keywords: singleProduct?.meta?.keywords,
+                title: singleProduct?.meta?.title,
+              },
+              shipping: {
+                depth: singleProduct.shipping.depth.toString(),
+                height: singleProduct.shipping.height.toString(),
+                shippingClass: singleProduct.shipping.shippingClass,
+                weight: singleProduct.shipping.weight.toString(),
+                width: singleProduct.shipping.width.toString(),
+              },
+              tax_class: singleProduct.taxClass,
+              feature_product: singleProduct.feature_product,
+              product_type: singleProduct.product_type,
+              quantity: singleProduct.quantity,
+              sku: singleProduct.sku,
+              feautred_image: singleProduct.feature_image,
+              gallery_image: isEmpty(singleProduct.gallery_image)
+                ? []
+                : singleProduct.gallery_image,
+              attribute: [],
+              variant: [],
+              short_description: 'NA',
+              custom_field: [],
+            };
+            if (singleProduct.feature_image) {
+              setFeaturedImage(BASE_URL + singleProduct.feature_image);
             }
-          }}
-          placeholder={'Select Product'}
-          color="black"
-          padding={0}
-          searchenabled={true}
-          fs={15}
-          paddingLeft={0}
-          fontColr={'#707070'}
-          vzindex={21}
-          valueSchema={'_id'}
-          br={5}
-        />
-      </View>
+            if (singleProduct.gallery_image.length > 0) {
+              var allGalleryImage = singleProduct.gallery_image.map(
+                gallery => BASE_URL + gallery,
+              );
+              setGalleryImages(allGalleryImage);
+            }
+
+            setGroups(cvdata);
+            setAddProductDetail(newData);
+            setProduct(singleProduct);
+            console.log(cvdata, 'ccdd');
+          }
+        }}
+        placeholder={'Select Product'}
+        color="black"
+        padding={0}
+        searchenabled={true}
+        fs={15}
+        paddingLeft={0}
+        fontColr={'#707070'}
+        vzindex={99}
+        valueSchema={'_id'}
+        br={5}
+        marHori={10}
+      />
+      {/* </View> */}
       <AddProductView
         navigation={navigation}
         addProductDetail={addProductDetail}
@@ -588,6 +618,8 @@ const AddProductsScreen = ({navigation}) => {
         groups={groups}
         setGroups={setGroups}
         setAddProductDetail={setAddProductDetail}
+        removeItemFromGroup={removeItemFromGroup}
+        removeValueAtIndex={removeValueAtIndex}
       />
     </>
   );

@@ -9,8 +9,9 @@ import {
 } from 'react-native';
 import Colors from '../../../utils/color';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import {isEmpty} from '../../../utils/helper';
 
-const Editor = ({data, onEditorChange}) => {
+const Editor = ({data, onEditorChange, edit}) => {
   const EditorRef = useRef(null);
   const [disabled, setDisabled] = useState(false);
   const [editorHeight, setEditorHeight] = useState(150);
@@ -24,7 +25,7 @@ const Editor = ({data, onEditorChange}) => {
 
   useEffect(() => {
     console.log('running now', data);
-    EditorRef.current?.insertHTML(data);
+    // EditorRef.current?.insertHTML(data);
   }, []);
 
   const handleChange = html => {
@@ -46,17 +47,31 @@ const Editor = ({data, onEditorChange}) => {
     <SafeAreaView>
       <KeyboardAvoidingView behavior={'position'} enabled>
         <View style={{height: editorHeight}}>
-          <RichEditor
-            editorStyle={{backgroundColor: '#eee'}}
-            ref={EditorRef}
-            disabled={disabled}
-            placeholder={'Please enter description'}
-            initialContentHTML={data}
-            onChange={handleChange}
-            onHeightChange={handleHeightChange}
-            style={{flex: 1}}
-            useContainer={true}
-          />
+          {!isEmpty(data) && edit ? (
+            <RichEditor
+              editorStyle={{backgroundColor: '#eee'}}
+              ref={EditorRef}
+              disabled={disabled}
+              placeholder={'Please enter description'}
+              initialContentHTML={data}
+              onChange={handleChange}
+              onHeightChange={handleHeightChange}
+              style={{flex: 1}}
+              useContainer={true}
+            />
+          ) : (
+            <RichEditor
+              editorStyle={{backgroundColor: '#eee'}}
+              ref={EditorRef}
+              disabled={disabled}
+              placeholder={'Please enter description'}
+              initialContentHTML={data}
+              onChange={handleChange}
+              onHeightChange={handleHeightChange}
+              style={{flex: 1}}
+              useContainer={true}
+            />
+          )}
         </View>
         <RichToolbar
           style={[styles.richBar, themeBg]}

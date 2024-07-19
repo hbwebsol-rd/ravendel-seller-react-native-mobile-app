@@ -1,5 +1,11 @@
 import React, {useState, useEffect} from 'react';
-import {View, SafeAreaView} from 'react-native';
+import {
+  View,
+  SafeAreaView,
+  Alert,
+  StyleSheet,
+  PermissionsAndroid,
+} from 'react-native';
 import {
   AddWrapper,
   TopBar,
@@ -18,7 +24,7 @@ import GalleryImage from '../components/gallery-image';
 import FeaturedImage from '../components/feature-image';
 import Accordion from '../../components/accordion';
 import CategoriesSelections from '../../components/categories-selection';
-import Attributes from '../components/attributesold';
+// import Attributes from '../components/attributesold';
 import AppLoader from '../../components/loader';
 import URLComponents from '../../components/urlComponents';
 import TaxComponent from '../components/tax';
@@ -28,6 +34,10 @@ import InventoryComponents from '../components/inventory';
 import Specification from '../components/specification';
 import {Text} from '@rneui/base';
 import EditCategoriesComponent from '../../components/edit-category';
+import {DELETE_PRODUCT} from '../../../queries/productQueries';
+import {useMutation} from '@apollo/client';
+import ThemeColor from '../../../utils/color';
+import ImgToBase64 from 'react-native-image-base64';
 
 /* =============================Upload Featured Image and Gallery Options============================= */
 const options = {
@@ -37,6 +47,9 @@ const options = {
     skipBackup: true,
     path: 'images',
   },
+  quality: 0.5,
+  maxWidth: 500,
+  maxHeight: 500,
 };
 
 const EditProductView = ({
@@ -59,6 +72,8 @@ const EditProductView = ({
   onAttrAndVariantParent,
   groups,
   setGroups,
+  removeValueAtIndex,
+  removeItemFromGroup,
 }) => {
   /* =============================States============================= */
   const [uploadModal, setUploadModal] = useState(false);
@@ -83,7 +98,31 @@ const EditProductView = ({
     tax_class,
     short_description,
     categoryTree,
+    _id,
   } = editProductDetail;
+
+  const [deleteProduct, {loading: DeleteLoading, errors}] = useMutation(
+    DELETE_PRODUCT,
+    {
+      // refetchQueries: [{query: GET_PRODUCTS}],
+      onError: error => {
+        // Handle error as needed
+        console.error('Error deleting Product:', error);
+      },
+      onCompleted: data => {
+        // Handle completion as needed
+        // GraphqlSuccess('Deleted successfully');
+        console.log('Product deleted successfully:', data);
+        navigation.goBack();
+        // refetch();
+      },
+    },
+  );
+
+  const deleteProductFun = id => {
+    console.log(id, 'delteing id');
+    deleteProduct(id);
+  };
 
   /* =============================Upload Featured Image and Gallery Image Function============================= */
   const UploadImage = response => {
@@ -95,13 +134,33 @@ const EditProductView = ({
       console.log('User tapped custom button: ', response.customButton);
     } else {
       // const source = { uri: 'data:image/jpeg;base64,' + response.data };
-      if (uploadImageOf === 'feature_image') {
-        onFeaturedImageAdd(response.assets[0].uri);
-        inputChange('update_feature_image', response.uri);
-      }
-      if (uploadImageOf === 'gallery_image') {
-        onGalleryImagesAdd(response.assets[0].uri);
-      }
+      ImgToBase64.getBase64String(response.assets[0].uri).then(base64String => {
+        const image = {
+          uri: response.assets[0].uri,
+          type: response.assets[0].type,
+          name: response.assets[0].uri.substr(
+            response.assets[0].uri.lastIndexOf('/') + 1,
+          ),
+          file:
+            'data:image/png;base64,' +
+            base64String.trim().replace(new RegExp('\r?\n', 'g'), ''),
+        };
+        console.log('response.uri', response.uri);
+        // console.log('image', image);
+
+        if (uploadImageOf === 'feature_image') {
+          onFeaturedImageAdd(image);
+          // onFeaturedImageAdd(response.assets[0].uri);
+          // inputChange('update_feature_image', response.uri);
+        }
+
+        if (uploadImageOf === 'gallery_image') {
+          onGalleryImagesAdd(image);
+        }
+        // gImage.push({
+        //   file: 'base64String',
+        // });
+      });
     }
     setUploadModal(false);
   };
@@ -159,24 +218,25 @@ const EditProductView = ({
   };
   return (
     <AddWrapper>
-      {Attributes.loading ? <AppLoader /> : null}
-      <TopBar>
-        <CheckBox
-          title="Draft"
-          checked={status === 'Draft'}
-          onPress={() => inputChange('status', 'Draft')}
-        />
-        <CheckBox
-          title="Publish"
-          checked={status === 'Publish'}
-          onPress={() => inputChange('status', 'Publish')}
-        />
+      {/* {Attributes.loading ? <AppLoader /> : null} */}
+      <View style={styles.addBtnContainer}>
+        <View style={{flexDirection: 'row'}}>
+          <CheckBox
+            title="Draft"
+            checked={status === 'Draft'}
+            onPress={() => inputChange('status', 'Draft')}
+          />
+          <CheckBox
+            title="Publish"
+            checked={status === 'Publish'}
+            onPress={() => inputChange('status', 'Publish')}
+          />
+        </View>
         <Button title="Save" onPress={update} />
-      </TopBar>
+      </View>
       <AddFormWrapper>
         {/* =================================Product Information============================== */}
         <AddFormSections>
-          <AddFormSectionTitle>Information</AddFormSectionTitle>
           <Input
             label="Name"
             value={name}
@@ -193,6 +253,7 @@ const EditProductView = ({
           <Editor
             data={description}
             onEditorChange={value => inputChange('description', value)}
+            edit={true}
           />
           <Input
             labelStyle={{marginTop: 15}}
@@ -345,6 +406,8 @@ const EditProductView = ({
                 variant={variant}
                 groups={groups}
                 setGroups={setGroups}
+                removeValueAtIndex={removeValueAtIndex}
+                removeItemFromGroup={removeItemFromGroup}
               />
             </AddFormSections>
           </AddFormSections>
@@ -371,7 +434,6 @@ const EditProductView = ({
             }
           />
         ) : null}
-
         {/* =================================Product Brand============================== */}
         {allBrands.length > 0 ? (
           <Accordion title="Brands">
@@ -379,7 +441,7 @@ const EditProductView = ({
               iosDropdown
               pickerKey="name"
               pickerVal="id"
-              selectedValue={brand && brand.id ? brand.id : ''}
+              selectedValue={brand ? brand : ''}
               androidPickerData={allBrands}
               iosPickerData={allBrands}
               pickerValChange={val => inputChange('brand', val)}
@@ -432,7 +494,29 @@ const EditProductView = ({
             objectInputChange('meta', name, value)
           }
         />
-
+        <Button
+          style={{marginBottom: 50}}
+          color={ThemeColor.redColor}
+          title="Delete Product"
+          onPress={() =>
+            Alert.alert(
+              'Are you sure you want to delete this product?',
+              '',
+              [
+                {
+                  text: 'Cancel',
+                  style: 'cancel',
+                },
+                {
+                  text: 'OK',
+                  onPress: () => deleteProductFun({variables: {id: _id}}),
+                },
+              ],
+              {cancelable: false},
+            )
+          }
+        />
+        <View style={{height: 20}} />
         {/* =================================Upload Modal============================== */}
         <BottomSheet isVisible={uploadModal}>
           {uploadModalBtn.map((l, i) => (
@@ -448,10 +532,21 @@ const EditProductView = ({
           ))}
         </BottomSheet>
       </AddFormWrapper>
-
       <BottomDivider />
     </AddWrapper>
   );
 };
 
 export default EditProductView;
+const styles = StyleSheet.create({
+  addBtnContainer: {
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderColor: '#ddd',
+    marginTop: -10,
+  },
+});

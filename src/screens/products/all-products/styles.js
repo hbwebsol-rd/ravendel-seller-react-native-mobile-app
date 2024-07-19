@@ -9,6 +9,7 @@ export const ProductsCardWrapper = styled.View`
   flex-wrap: wrap;
   padding-bottom: 20px;
   margin-horizontal: 10px;
+  flex:1;
 `;
 export const ProductCard = styled.TouchableOpacity`
   width: 48%;
@@ -58,7 +59,7 @@ export const ProductPrice = styled.Text`
   margin-bottom: 5px;
 `;
 export const ProductSellPrice = styled.Text`
-  color: ${Colors.deleteColor};
+  color: ${Colors.blackColor};
   margin-right: 10px;
 `;
 export const ProductHasSellPrice = styled.Text`

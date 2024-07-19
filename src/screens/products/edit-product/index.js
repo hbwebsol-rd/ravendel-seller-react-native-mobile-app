@@ -17,10 +17,15 @@ import {
   isEmpty,
   convertData,
   URL,
+  containsOnlyNumbers,
 } from '../../../utils/helper';
 import {GraphqlError, GraphqlSuccess} from '../../components/garphqlMessages';
+import {useDispatch} from 'react-redux';
+import {ALERT_ERROR} from '../../../store/reducer/alert';
 
 const EditProductsScreen = ({route, navigation}) => {
+  const dispatch = useDispatch();
+
   const Categories = useQuery(GET_CATEGORIES);
   const Brands = useQuery(GET_BRANDS);
   const AttributesData = useQuery(GET_ATTRIBUTES);
@@ -65,12 +70,19 @@ const EditProductsScreen = ({route, navigation}) => {
     variant: [],
     short_description: '',
     custom_field: [],
+    update_gallery_image: '',
+    update_feature_image: '',
   });
   const [featuredImage, setFeaturedImage] = useState(null);
   const [gallery, setGallery] = useState([]);
-  const {loading, error, data} = useQuery(GET_PRODUCT, {
+  const {loading, error, data, refetch} = useQuery(GET_PRODUCT, {
     variables: {id: route.params.id},
   });
+
+  useEffect(() => {
+    refetch();
+  }, []);
+
   const [allCategories, setAllCategories] = useState([]);
   const [allBrands, setAllBrands] = useState([]);
   const [allAttributes, setAllAttributes] = useState([]);
@@ -96,7 +108,7 @@ const EditProductsScreen = ({route, navigation}) => {
 
   useEffect(() => {
     if (Brands.data && Brands.data.brands) {
-      setAllBrands(Brands.data.brands);
+      setAllBrands(Brands.data.brands.data);
     }
   }, [Brands.data]);
 
@@ -118,27 +130,27 @@ const EditProductsScreen = ({route, navigation}) => {
     }
   }, [Shippings.data]);
 
-  useEffect(() => {
-    if (!isEmpty(allShipppings) && !isEmpty(allTaxes)) {
-      if (
-        allShipppings?.data?.shippingClass.length &&
-        allTaxes.data.taxClass.length
-      ) {
-        setProductDetail({
-          ...productDetail,
-          shipping: {
-            ...productDetail.shipping,
-            shippingClass: allShipppings.data.global.is_global
-              ? allShipppings.data.global.shippingClass
-              : '',
-          },
-          tax_class: allTaxes.data.global.is_global
-            ? allTaxes.data.global.taxClass
-            : '',
-        });
-      }
-    }
-  }, [allTaxes, allShipppings]);
+  // useEffect(() => {
+  //   if (!isEmpty(allShipppings) && !isEmpty(allTaxes)) {
+  //     if (
+  //       allShipppings?.data?.shippingClass.length &&
+  //       allTaxes.data.taxClass.length
+  //     ) {
+  //       setProductDetail({
+  //         ...productDetail,
+  //         shipping: {
+  //           ...productDetail.shipping,
+  //           shippingClass: allShipppings.data.global.is_global
+  //             ? allShipppings.data.global.shippingClass
+  //             : '',
+  //         },
+  //         tax_class: allTaxes.data.global.is_global
+  //           ? allTaxes.data.global.taxClass
+  //           : '',
+  //       });
+  //     }
+  //   }
+  // }, [allTaxes, allShipppings]);
 
   useEffect(() => {
     if (isFocused) {
@@ -154,11 +166,11 @@ const EditProductsScreen = ({route, navigation}) => {
           setGallery(allGalleryImage);
         }
         const cvdata = convertData(singleProduct.specifications);
-        console.log(singleProduct?.categoryTree, ' cattree');
         const newData = {
           _id: singleProduct._id,
           name: singleProduct.name,
           description: singleProduct.description,
+          short_description: singleProduct.short_description,
           url: singleProduct.url,
           categoryId: singleProduct.categoryId?.map(cat => cat.id),
           categoryTree: singleProduct?.categoryTree || [],
@@ -170,9 +182,9 @@ const EditProductsScreen = ({route, navigation}) => {
           },
           status: singleProduct.status,
           meta: {
-            description: singleProduct.meta.description,
-            keywords: singleProduct.meta.keywords,
-            title: singleProduct.meta.title,
+            description: singleProduct?.meta?.description,
+            keywords: singleProduct?.meta?.keywords,
+            title: singleProduct?.meta?.title,
           },
           shipping: {
             depth: singleProduct.shipping.depth,
@@ -190,7 +202,6 @@ const EditProductsScreen = ({route, navigation}) => {
           gallery_image: singleProduct.gallery_image,
           attribute: [],
           variant: [],
-          short_description: 'NA',
           custom_field: [],
         };
         setProductDetail(newData);
@@ -206,7 +217,7 @@ const EditProductsScreen = ({route, navigation}) => {
   };
 
   const onNestedObjectValueChange = (object, name, value) => {
-    productDetail[object][name] = value.toString();
+    productDetail[object][name] = value && value.toString();
 
     setProductDetail({...productDetail});
   };
@@ -217,11 +228,10 @@ const EditProductsScreen = ({route, navigation}) => {
     productDetail.update_gallery_image = updatedImages;
     // productDetail.gallery_image.push(img);
     setProductDetail({...productDetail});
-    setGallery([...gallery, img]);
+    setGallery([...gallery, img.uri]);
   };
 
   const onGalleryImagesRemove = img => {
-    console.log(img);
     if (img?._id) {
       let galleryImages = productDetail.gallery_image;
       let removed_image = productDetail.removed_image || [];
@@ -238,19 +248,31 @@ const EditProductsScreen = ({route, navigation}) => {
     setGallery(gallery.filter(galleryImg => galleryImg !== img));
   };
 
-  const onFeaturedImageAdd = img => setFeaturedImage(img);
+  const onFeaturedImageAdd = img => {
+    setFeaturedImage(img.uri);
+    setProductDetail({...productDetail, ['update_feature_image']: img});
+  };
+  // const onFeaturedImageAdd = img => setFeaturedImage(img);
+
   const onFeaturedImageRemove = () => setFeaturedImage(null);
 
   const [updateProduct, {loading: UpdateLoading}] = useMutation(
     UPDATE_PRODUCT,
     {
       onError: error => {
-        GraphqlError(error);
+        console.log(error, ' error on edit pr');
+        // GraphqlError(error);
+        dispatch({type: ALERT_ERROR, payload: 'Something went wrong'});
       },
       onCompleted: data => {
-        GraphqlSuccess('Updated Successfully');
-        setProductDetail({});
-        navigation.goBack();
+        console.log(data, ' update resuilt');
+        if (data.updateProduct.success) {
+          GraphqlSuccess('Updated Successfully');
+          setProductDetail({});
+          navigation.goBack();
+        } else {
+          dispatch({type: ALERT_ERROR, payload: data.updateProduct.message});
+        }
       },
     },
   );
@@ -259,6 +281,31 @@ const EditProductsScreen = ({route, navigation}) => {
     productDetail.variant = variantItem;
     productDetail.attribute = attributeItem;
     setProductDetail({...productDetail});
+  };
+
+  const filterTreeData = data => {
+    return data.reduce((acc, category) => {
+      const filteredCategory = {
+        id: category?.id,
+        name: category.name,
+        checked: category.checked,
+        url: category.url,
+      };
+      if (category?.children && category?.children?.length > 0) {
+        filteredCategory.children = category?.children;
+      }
+
+      if (category?.checked) {
+        acc.push(filteredCategory);
+      } else if (category?.children && category?.children?.length > 0) {
+        filteredCategory.children = filterTreeData(category?.children);
+        if (filteredCategory.children.length > 0) {
+          acc.push(filteredCategory);
+        }
+      }
+
+      return acc;
+    }, []);
   };
 
   const UpdateProductSubmit = () => {
@@ -281,6 +328,7 @@ const EditProductsScreen = ({route, navigation}) => {
       attribute,
       variant,
       combinations,
+      categoryId,
     } = productDetail;
     const result = [];
     groups.forEach(group => {
@@ -294,38 +342,45 @@ const EditProductsScreen = ({route, navigation}) => {
         });
       });
     });
-    var CategoryIDs = productDetail.categoryId.map(cat => cat.id);
+    // var CategoryIDs = productDetail.categoryId.map(cat => cat.id);
 
     if (isEmpty(name)) {
-      setValidationMessage('Name is Required');
-      setShowAlert(true);
+      dispatch({type: ALERT_ERROR, payload: 'Name is Required'});
       return;
-    } else if (isEmpty(CategoryIDs)) {
-      setValidationMessage('Category is Required');
-      setShowAlert(true);
+    } else if (isEmpty(categoryId)) {
+      dispatch({type: ALERT_ERROR, payload: 'Category is Required'});
       return;
     } else if (isEmpty(description)) {
-      setValidationMessage('Description is Required');
-      setShowAlert(true);
+      dispatch({type: ALERT_ERROR, payload: 'Description is Required'});
       return;
-    } else if (isEmpty(pricing)) {
-      setValidationMessage('Price is Required');
-      setShowAlert(true);
+    } else if (isEmpty(pricing.price)) {
+      dispatch({type: ALERT_ERROR, payload: 'Price is Required'});
+      return;
+    } else if (
+      isEmpty(pricing.sellprice) ||
+      !containsOnlyNumbers(pricing.sellprice)
+    ) {
+      dispatch({type: ALERT_ERROR, payload: 'Sellprice is Required'});
       return;
     } else if (isEmpty(sku)) {
-      setValidationMessage('SKU is Required');
-      setShowAlert(true);
+      dispatch({type: ALERT_ERROR, payload: 'SKU is Required'});
       return;
     } else if (isEmpty(quantity)) {
-      setValidationMessage('Quantity is Required');
-      setShowAlert(true);
+      dispatch({type: ALERT_ERROR, payload: 'Quantity is Required'});
+      return;
+    } else if (isEmpty(shipping.shippingClass)) {
+      dispatch({type: ALERT_ERROR, payload: 'Shipping Class is Required'});
       return;
     }
+
+    const filteredData = filterTreeData(productDetail.categoryTree);
+
     var details = {
       _id: productDetail._id,
       name: name,
       url: url,
-      categoryId: CategoryIDs,
+      categoryId: categoryId,
+      categoryTree: filteredData,
       brand: brand.id,
       short_description: short_description,
       description: description,
@@ -336,19 +391,45 @@ const EditProductsScreen = ({route, navigation}) => {
       featured_product: feature_product,
       product_type: product_type,
       shipping: shipping,
-      tax_class: tax_class,
+      taxClass: tax_class,
       meta: meta,
       custom_field: custom_field,
       specifications: result,
       // attribute: attribute,
       // variant: variant,
       // combinations: combinations,
-      update_gallery_image: productDetail?.update_gallery_image || '',
+      // update_gallery_image: productDetail?.update_gallery_image || '',
       removed_image: productDetail?.removed_image || '',
-      update_feature_image: productDetail?.update_feature_image || '',
+      // update_feature_image: productDetail?.update_feature_image || '',
     };
+
+    if (productDetail?.update_gallery_image) {
+      details.update_gallery_image = productDetail?.update_gallery_image || '';
+    }
+    if (!isEmpty(productDetail?.update_feature_image)) {
+      details.update_feature_image =
+        [productDetail?.update_feature_image] || '';
+    }
     console.log('UpdateProductSubmit details', details);
     updateProduct({variables: details});
+  };
+
+  const removeItemFromGroup = index => {
+    const newArray = groups.filter((_, i) => i !== index);
+    setGroups(newArray);
+  };
+
+  const removeValueAtIndex = (dataIndex, valueIndex) => {
+    setGroups(prevData =>
+      prevData.map((item, index) =>
+        index === dataIndex
+          ? {
+              ...item,
+              attributes: item.attributes.filter((_, i) => i !== valueIndex),
+            }
+          : item,
+      ),
+    );
   };
 
   return (
@@ -386,6 +467,8 @@ const EditProductsScreen = ({route, navigation}) => {
           }
           groups={groups}
           setGroups={setGroups}
+          removeValueAtIndex={removeValueAtIndex}
+          removeItemFromGroup={removeItemFromGroup}
         />
       ) : null}
     </>

@@ -65,6 +65,8 @@ const AddProductView = ({
   groups,
   setGroups,
   setAddProductDetail,
+  removeItemFromGroup,
+  removeValueAtIndex,
 }) => {
   /* =============================States============================= */
   const [uploadModal, setUploadModal] = useState(false);
@@ -90,7 +92,9 @@ const AddProductView = ({
           name: response.assets[0].uri.substr(
             response.assets[0].uri.lastIndexOf('/') + 1,
           ),
-          file: 'data:image/png;base64,' + base64String.trim(),
+          file:
+            'data:image/png;base64,' +
+            base64String.trim().replace(new RegExp('\r?\n', 'g'), ''),
         };
         console.log('response.uri', response.uri);
         // console.log('image', image);
@@ -208,7 +212,6 @@ const AddProductView = ({
       <AddFormWrapper>
         {/* =================================Product Information============================== */}
         <AddFormSections>
-          <AddFormSectionTitle>Information</AddFormSectionTitle>
           <Input
             label="Name"
             value={name}
@@ -359,7 +362,7 @@ const AddProductView = ({
         {/* =================================Attributes============================== */}
         <AddFormSections>
           <AddFormSectionTitle>Attributes</AddFormSectionTitle>
-
+          {console.log(removeItemFromGroup, ' lolo')}
           <Specification
             data={attributes}
             attribute={attribute}
@@ -372,6 +375,8 @@ const AddProductView = ({
             }}
             groups={groups}
             setGroups={setGroups}
+            removeItemFromGroup={removeItemFromGroup}
+            removeValueAtIndex={removeValueAtIndex}
           />
         </AddFormSections>
 
@@ -404,6 +409,7 @@ const AddProductView = ({
         <View style={{backgroundColor: ThemeColor.whiteColor}}>
           <Text
             style={{
+              marginTop: 10,
               marginLeft: 12,
               fontWeight: 'bold',
               color: ThemeColor.primaryColor,
@@ -436,21 +442,6 @@ const AddProductView = ({
           // mode="BADGE"
           // multiple={true}
         />
-
-        {/* <CustomPicker
-            iosDropdown
-            pickerKey="name"
-            pickerVal="id"
-            androidPickerData={brands.data}
-            iosPickerData={brands.data}
-            selectedValue={brand}
-            pickerValChange={val => inputChange('brand', val)}
-            placeholder="Please Select"
-            label="Brand"
-          /> */}
-        {/* </View> */}
-        {/* </View> */}
-        {/* </Accordion> */}
 
         {/* =================================Product Type============================== */}
         <Accordion title="Product Type">
@@ -526,6 +517,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderBottomWidth: 1,
     borderColor: '#ddd',
-    marginTop: -10,
+    marginTop: 10,
   },
 });

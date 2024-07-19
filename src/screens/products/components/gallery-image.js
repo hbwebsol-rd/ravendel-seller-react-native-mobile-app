@@ -10,7 +10,6 @@ const GalleryImage = ({images, removeImage, addImage}) => {
       {images.length
         ? images.map((img, i) => (
             <GalleryImageCard key={i}>
-              {console.log(img)}
               <Image source={{uri: img}} style={{width: 70, height: 70}} />
               <GalleryImageRemove
                 onPress={() => {
