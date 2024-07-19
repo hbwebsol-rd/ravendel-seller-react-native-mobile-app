@@ -40,7 +40,7 @@ const Orders = [
   {
     order_date: '12 Nov 2020',
     order_id: '#ORD0003',
-    order_status: 'Out for delievery',
+    order_status: 'Out for delivery',
     type: 3,
     order_amount: '100',
   },
@@ -56,14 +56,14 @@ const Orders = [
 const picker = [
   {label: 'In Progress', value: 'inprogress'},
   {label: 'Shipped', value: 'shipped'},
-  {label: 'Out for delievery', value: 'outfordelivery'},
+  {label: 'Out for delivery', value: 'outfordelivery'},
   {label: 'Delivered', value: 'delivered'},
 ];
 
 const paymentPicker = [
   {label: 'Pending', value: 'pending'},
   {label: 'Failed', value: 'failed'},
-  {label: 'Completed', value: 'completed'},
+  {label: 'Success', value: 'success'},
   {label: 'Cancelled', value: 'cancelled'},
   {label: 'Processing', value: 'processing'},
 ];
@@ -163,7 +163,7 @@ const AllOrderView = ({navigation}) => {
       // setAllOrders(filterOrder);
       setFillter(val);
     } else {
-      setFillter('All');
+      setFillter('');
       // setAllOrders(data?.orders?.data);
     }
   };
@@ -176,7 +176,7 @@ const AllOrderView = ({navigation}) => {
       // setAllOrders(filterOrder);
       setPaymentFillter(val);
     } else {
-      setPaymentFillter('All');
+      setPaymentFillter('');
       // setAllOrders(data?.orders?.data);
     }
   };
@@ -249,7 +249,7 @@ const AllOrderView = ({navigation}) => {
         }}
         style={{backgroundColor: ThemeColor.whiteColor}}
         key={i}>
-        <OrderDate>{moment(order.date).format('d/M/Y H:m a')}</OrderDate>
+        <OrderDate>{moment(order.date).format('MMMM D, YYYY H:m')}</OrderDate>
         <OrderID>
           {/* <Text style={{fontWeight: 'bold'}}>Order Id:</Text>{' '} */}
           {order.orderNumber}
@@ -266,7 +266,9 @@ const AllOrderView = ({navigation}) => {
           }}>
           <View
             style={{flexDirection: 'row', alignItems: 'center', marginTop: 8}}>
-            <Text style={{fontSize: 10, marginRight: 8}}>PAYMENT</Text>
+            <Text style={{fontSize: 10, marginRight: 8, color: '#000'}}>
+              PAYMENT
+            </Text>
             <View
               style={{
                 ...styles.orderStatus,
@@ -278,7 +280,9 @@ const AllOrderView = ({navigation}) => {
             </View>
           </View>
           <View style={{flexDirection: 'row', alignItems: 'center'}}>
-            <Text style={{fontSize: 10, marginRight: 8}}>SHIPPING</Text>
+            <Text style={{fontSize: 10, marginRight: 8, color: '#000'}}>
+              SHIPPING
+            </Text>
             <View
               style={{
                 ...styles.orderStatus,
@@ -362,7 +366,26 @@ const AllOrderView = ({navigation}) => {
           containerStyle={{backgroundColor: 'rgba(0, 0, 0, 0.5)'}}
           style={{flex: 1, elevation: 10, paddingHorizontal: 15}}>
           <ScrollView showsVerticalScrollIndicator={false}>
-            <Text style={{fontSize: 16}}>Filter</Text>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}>
+              <Text style={{fontSize: 16, color: ThemeColor.blackColor}}>
+                Filter
+              </Text>
+              {!isEmpty(shippingstatus) ||
+              !isEmpty(paymentstatus) ||
+              startDate ||
+              endDate ? (
+                <TouchableOpacity onPress={() => handleClear()}>
+                  <Text style={{color: ThemeColor.primaryColor, fontSize: 14}}>
+                    Clear Filter
+                  </Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
             <CustomPicker
               iosSelect
               pickerKey="label"
@@ -439,7 +462,10 @@ const AllOrderView = ({navigation}) => {
                 marginTop: 15,
               }}>
               <TouchableOpacity
-                onPress={() => bottomSheetModalRef.current?.dismiss()}
+                onPress={() => { setFillter('');
+                  setPaymentFillter('');
+                  setFrom('');
+                  setTo('');bottomSheetModalRef.current?.dismiss()}}
                 style={styles.cancelBtn}>
                 <Text style={{color: '#fff', fontSize: 16}}>Cancel</Text>
               </TouchableOpacity>
@@ -449,7 +475,7 @@ const AllOrderView = ({navigation}) => {
                 <Text style={{color: '#fff', fontSize: 16}}>Apply Filter</Text>
               </TouchableOpacity>
             </View>
-            {paymentstatus || shippingstatus || startDate || endDate ? (
+            {/* {paymentstatus || shippingstatus || startDate || endDate ? (
               <TouchableOpacity
                 onPress={() => handleClear()}
                 style={{
@@ -466,7 +492,7 @@ const AllOrderView = ({navigation}) => {
               </TouchableOpacity>
             ) : (
               ''
-            )}
+            )} */}
           </ScrollView>
         </BottomSheetModal>
       </OrdersWrapper>
@@ -498,7 +524,7 @@ const styles = StyleSheet.create({
   filterBtn: {
     width: '45%',
     paddingVertical: 10,
-    backgroundColor: ThemeColor.persianGreen,
+    backgroundColor: ThemeColor.primaryColor,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,

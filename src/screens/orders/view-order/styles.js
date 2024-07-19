@@ -23,14 +23,19 @@ export const OrderInfoRow = styled.View`
 `;
 export const OrderInfoLabel = styled.Text`
   width: 125px;
+  color: #000;
 `;
-export const OrderInfoVal = styled.Text``;
+export const OrderInfoVal = styled.Text`
+  color: #000;
+`;
 export const ShippingName = styled.Text`
   font-weight: bold;
   margin-bottom: 3px;
+  color: #000;
 `;
 export const ShippingDetails = styled.Text`
   margin-bottom: 3px;
+  color: #000;
 `;
 export const OrderDetailRow = styled.View`
   justify-content: space-between;
@@ -43,11 +48,15 @@ export const OrderDetailRow = styled.View`
 `;
 export const OrderDetailLeftCol = styled.View``;
 export const OrderDetailRightCol = styled.View``;
-export const ProductName = styled.Text``;
+export const ProductName = styled.Text`
+  color: #000;
+`;
 export const ProductQty = styled.Text`
   color: #858686;
 `;
-export const ProductPrice = styled.Text``;
+export const ProductPrice = styled.Text`
+  color: #000;
+`;
 
 export const OrderAmountRow = styled.View`
   flex-direction: row;
@@ -57,8 +66,10 @@ export const OrderAmountRow = styled.View`
 export const OrderAmountLabel = styled.Text`
   width: 200px;
   text-align: right;
+  color: #000;
 `;
 export const OrderAmountValue = styled.Text`
   flex: 1;
   text-align: right;
+  color: #000;
 `;

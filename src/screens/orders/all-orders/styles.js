@@ -2,6 +2,7 @@ import styled from 'styled-components';
 
 export const OrdersWrapper = styled.View`
   padding: 10px;
+  flex:1
 `;
 export const OrderCard = styled.TouchableOpacity`
   padding: 10px;
@@ -21,13 +22,17 @@ export const OrderAmount = styled.Text`
 `;
 export const OrderID = styled.Text`
   font-size: 14px;
+  color: #000;
 `;
-export const OrderStatus = styled.Text``;
+export const OrderStatus = styled.Text`
+  color: #000;
+`;
 export const OrderDate = styled.Text`
   position: absolute;
   top: 10px;
   right: 10px;
   font-size: 12px;
+  color: #000;
 `;
 export const OrderView = styled.TouchableOpacity`
   position: absolute;

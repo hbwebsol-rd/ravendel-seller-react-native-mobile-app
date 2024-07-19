@@ -22,10 +22,11 @@ import BottomDivider from '../../components/bottom-divider';
 import moment from 'moment';
 import {useQuery} from '@apollo/client';
 import {GET_ORDER} from '../../../queries/orderQueries';
-import {formatCurrency, isEmpty} from '../../../utils/helper';
+import {capitalizeFirstLetter, formatCurrency, isEmpty} from '../../../utils/helper';
 import {Text} from '@rneui/base';
 import AppLoader from '../../components/loader';
 import {useSelector} from 'react-redux';
+import {View} from 'react-native';
 
 const OrderView = ({navigation, orderDetail}) => {
   console.log(orderDetail.id);
@@ -59,10 +60,21 @@ const OrderView = ({navigation, orderDetail}) => {
         <OrderInfoRow>
           <OrderInfoLabel>Date</OrderInfoLabel>
           <OrderInfoVal>
-            {moment(orderDetail.date).format('d/M/Y H:m a')}
+            {moment(orderDetail.date).format('MMMM D, YYYY')}
           </OrderInfoVal>
         </OrderInfoRow>
         <OrderInfoRow>
+          <OrderInfoLabel>Payment Status</OrderInfoLabel>
+          <OrderInfoVal>
+            {console.log(JSON.stringify(orderDetail))}
+            {capitalizeFirstLetter(orderDetail.paymentStatus)}
+          </OrderInfoVal>
+        </OrderInfoRow>
+        <OrderInfoRow>
+          <OrderInfoLabel>Shipping Status</OrderInfoLabel>
+          <OrderInfoVal>{capitalizeFirstLetter(orderDetail.shippingStatus)}</OrderInfoVal>
+        </OrderInfoRow>
+        {/* <OrderInfoRow>
           <OrderInfoLabel>Total</OrderInfoLabel>
           <OrderInfoVal>
             {formatCurrency(
@@ -71,11 +83,25 @@ const OrderView = ({navigation, orderDetail}) => {
               currencySymbol,
             )}
           </OrderInfoVal>
-        </OrderInfoRow>
+        </OrderInfoRow> */}
         <OrderInfoRow>
           <OrderInfoLabel>Payment Method</OrderInfoLabel>
-          <OrderInfoVal>{orderDetail.billing.paymentMethod} </OrderInfoVal>
+          <OrderInfoVal>{capitalizeFirstLetter(orderDetail.billing.paymentMethod)} </OrderInfoVal>
         </OrderInfoRow>
+      </OrderViewCard>
+
+      <OrderViewCard>
+        <OrderViewCardTitle>Billing Info</OrderViewCardTitle>
+        <ShippingName>
+          {orderData.billing.firstname + ' ' + orderData.billing.lastname}
+        </ShippingName>
+        <ShippingDetails>{orderData.billing.email}</ShippingDetails>
+        <ShippingDetails>{orderData.billing.phone}</ShippingDetails>
+        <ShippingDetails>{orderData.billing.address}</ShippingDetails>
+        <ShippingDetails>
+          {orderData.billing.city}, {orderData.billing.state},{' '}
+          {orderData.billing.country}
+        </ShippingDetails>
       </OrderViewCard>
 
       <OrderViewCard>
@@ -93,26 +119,19 @@ const OrderView = ({navigation, orderDetail}) => {
       </OrderViewCard>
 
       <OrderViewCard>
-        <OrderViewCardTitle>Billing Info</OrderViewCardTitle>
-        <ShippingName>
-          {orderData.billing.firstname + ' ' + orderData.billing.lastname}
-        </ShippingName>
-        <ShippingDetails>{orderData.billing.email}</ShippingDetails>
-        <ShippingDetails>{orderData.billing.phone}</ShippingDetails>
-        <ShippingDetails>{orderData.billing.address}</ShippingDetails>
-        <ShippingDetails>
-          {orderData.billing.city}, {orderData.billing.state},{' '}
-          {orderData.billing.country}
-        </ShippingDetails>
-      </OrderViewCard>
-      <OrderViewCard>
         <OrderViewCardTitle>Order Details</OrderViewCardTitle>
         {!isEmpty(orderData) &&
           orderData.products.map(item => (
             <OrderDetailRow>
               <OrderDetailLeftCol style={{width: '70%'}}>
                 <Text>{item.productTitle}</Text>
-                <Text>x{item.qty}</Text>
+                <View style={{flexDirection: 'row'}}>
+                  <Text>
+                    {formatCurrency(item.productPrice, currencyOptions, currencySymbol)}
+                  </Text>
+                  {console.log(item,'popppp')}
+                  <Text style={{marginLeft: 8}}>x{item.qty}</Text>
+                </View>
               </OrderDetailLeftCol>
               <OrderDetailRightCol>
                 <ProductPrice>
@@ -121,7 +140,6 @@ const OrderView = ({navigation, orderDetail}) => {
               </OrderDetailRightCol>
             </OrderDetailRow>
           ))}
-
         <OrderAmountRow>
           <OrderAmountLabel>Subtotal</OrderAmountLabel>
           <OrderAmountValue>
@@ -132,26 +150,40 @@ const OrderView = ({navigation, orderDetail}) => {
             )}
           </OrderAmountValue>
         </OrderAmountRow>
-
         <OrderAmountRow>
-          <OrderAmountLabel>Tax</OrderAmountLabel>
+          <OrderAmountLabel>Discount on MRP</OrderAmountLabel>
           <OrderAmountValue>
             {formatCurrency(
-              orderData?.totalSummary?.totalTax,
+              orderData?.totalSummary?.discountTotal,
               currencyOptions,
               currencySymbol,
             )}
+          </OrderAmountValue>
+        </OrderAmountRow>
+        <OrderAmountRow>
+          <OrderAmountLabel>Tax</OrderAmountLabel>
+          <OrderAmountValue>
+            {orderData?.totalSummary?.totalTax > 0
+              ? formatCurrency(
+                  orderData?.totalSummary?.totalTax,
+                  currencyOptions,
+                  currencySymbol,
+                )
+              : 'TAX FREE'}
           </OrderAmountValue>
         </OrderAmountRow>
 
         <OrderAmountRow>
           <OrderAmountLabel>Shipping</OrderAmountLabel>
           <OrderAmountValue>
-            {formatCurrency(
-              orderData?.totalSummary?.totalShipping,
-              currencyOptions,
-              currencySymbol,
-            )}
+            {console.log(orderData?.totalSummary?.totalTax)}
+            {orderData?.totalSummary?.totalShipping > 0
+              ? formatCurrency(
+                  orderData?.totalSummary?.totalShipping,
+                  currencyOptions,
+                  currencySymbol,
+                )
+              : 'FREE SHIPPING'}
           </OrderAmountValue>
         </OrderAmountRow>
 
