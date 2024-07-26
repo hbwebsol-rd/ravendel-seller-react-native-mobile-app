@@ -145,7 +145,7 @@ export function CustomDrawer(props) {
                 props.navigation.navigate('AllCustomers');
               }}
             />
-            <DrawerItem
+            {/* <DrawerItem
               icon={({color, size}) => (
                 <Icon name="user-circle" color={color} size={size} />
               )}
@@ -162,7 +162,7 @@ export function CustomDrawer(props) {
               onPress={() => {
                 props.navigation.navigate('Setting');
               }}
-            />
+            /> */}
           </View>
         </View>
       </DrawerContentScrollView>

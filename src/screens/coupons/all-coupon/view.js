@@ -1,5 +1,5 @@
-import React from 'react';
-import {Alert, FlatList, Text} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {Alert, FlatList, StyleSheet, Text, View} from 'react-native';
 import {
   CouponCardWrapper,
   CouponCard,
@@ -24,6 +24,7 @@ import {GraphqlError, GraphqlSuccess} from '../../components/garphqlMessages';
 import moment from 'moment';
 import {useSelector} from 'react-redux';
 import {formatCurrency} from '../../../utils/helper';
+import { Input } from '@rneui/base';
 
 const AllCouponsView = ({navigation}) => {
   const isFocused = useIsFocused();
@@ -32,6 +33,18 @@ const AllCouponsView = ({navigation}) => {
   const {currencyOptions, currencySymbol} = useSelector(
     state => state.dashboard,
   );
+  const [allCoupon, setAllCoupon] = useState([]);
+  const [inpvalue, setInpvalue] = useState('');
+
+  useEffect(() => {
+    if (data && data?.coupons?.data)
+      setAllCoupon(data?.coupons?.data);
+  }, [data]);
+
+  const handleinpiut = e => {
+    setInpvalue(e);
+  };
+
   const [deleteCoupon, {loading: deleteLoading}] = useMutation(DELETE_COUPON, {
     onError: error => {
       // Handle error
@@ -59,7 +72,6 @@ const AllCouponsView = ({navigation}) => {
     return <Text>Something went wrong. Please try again later</Text>;
   }
 
-  const coupons = data.coupons.data;
 
   const Item = ({coupon, i}) => (
     <>
@@ -136,10 +148,33 @@ const AllCouponsView = ({navigation}) => {
   const renderItem = ({item, i}) => <Item coupon={item} i={i} />;
 
   return (
-    <MainContainer>
+     <View style={{flex: 1}}>
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+        }}>
+        <Input
+          containerStyle={{
+            height: 70,
+            width: '100%',
+          }}
+          inputContainerStyle={styles.inputStyle}
+          label=""
+          value={inpvalue}
+          onChangeText={handleinpiut}
+          placeholder="Search Coupon"
+          leftIcon={() => <Icon name="search" color="gray" size={16} />}
+          leftIconContainerStyle={{marginLeft: 15}}
+        />
+        {/* <TouchableOpacity
+            style={styles.filter}
+            onPress={() => setOpenModal(true)}>
+            <Icon name="filter" color="gray" size={30} />
+          </TouchableOpacity> */}
+      </View>
       <CouponCardWrapper>
         {deleteLoading ? <AppLoader /> : null}
-        {coupons.length ? (
           <>
             <FlatList
               initialNumToRender={10}
@@ -148,7 +183,7 @@ const AllCouponsView = ({navigation}) => {
               // refreshControl={
               //   <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
               // }
-              data={coupons}
+              data={allCoupon}
               renderItem={renderItem}
               ListEmptyComponent={() => (
                 <View>
@@ -164,12 +199,17 @@ const AllCouponsView = ({navigation}) => {
               )}
             />
           </>
-        ) : (
-          ''
-        )}
       </CouponCardWrapper>
-    </MainContainer>
+    </View>
   );
 };
 
 export default AllCouponsView;
+const styles = StyleSheet.create({
+  inputStyle: {
+    borderBottomWidth: 0,
+    borderBottomColor: 'black',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+  },
+});

@@ -1,9 +1,8 @@
 import React, {useEffect, useState} from 'react';
-import {View, Text, StyleSheet, ScrollView} from 'react-native';
+import {View, Text, StyleSheet, ScrollView, Platform} from 'react-native';
 import AppHeader from '../components/header';
 import {useMutation, useQuery} from '@apollo/client';
 import {GET_ATTRIBUTES} from '../../queries/attributesQueries';
-import Attributes from '../products/components/attributesold';
 import {GET_PRODUCTS} from '../../queries/productQueries';
 import FormActionsComponent from '../components/formAction';
 import {Input} from '@rneui/themed';
@@ -13,12 +12,22 @@ import {
   UPDATE_GROUP_PRODUCT,
 } from '../../queries/groupProductQueries';
 import GroupAttributes from '../components/group-attributes';
-import {isEmpty} from '../../utils/helper';
+import GroupAttributesIOS from '../components/group-attributes-ios';
+import {isEmpty, SPECIAL_CHARACTER_REGEX} from '../../utils/helper';
 import _ from 'lodash';
 import {GraphqlError, GraphqlSuccess} from '../components/garphqlMessages';
+import {WINDOW_HEIGHT} from '@gorhom/bottom-sheet';
+import ThemeColor from '../../utils/color';
+import {ALERT_ERROR} from '../../store/reducer/alert';
+import AppLoader from '../components/loader';
+import {useDispatch} from 'react-redux';
 
 const AddGroupScreen = ({navigation, route}) => {
+  const dispatch = useDispatch();
   const [combination, setCombination] = useState([]);
+  const [validation, setValdiation] = useState({
+    title: '',
+  });
   const id = route?.params?.id;
   console.log(id, 'iddd');
   const [addGroup, {loading: addedLoading}] = useMutation(ADD_GROUP_PRODUCT, {
@@ -27,7 +36,6 @@ const AddGroupScreen = ({navigation, route}) => {
       GraphqlError(error);
     },
     onCompleted: data => {
-      console.log(data, ' daaa');
       if (data.addGroup.success) {
         GraphqlSuccess('Added successfully');
         setGroupProduct({
@@ -37,7 +45,9 @@ const AddGroupScreen = ({navigation, route}) => {
         });
         navigation.goBack();
       } else {
-        GraphqlError(data.addGroup.message);
+        dispatch({type: ALERT_ERROR, payload: data.addGroup.message});
+
+        // GraphqlError(data.addGroup.message);
       }
     },
   });
@@ -45,17 +55,23 @@ const AddGroupScreen = ({navigation, route}) => {
     UPDATE_GROUP_PRODUCT,
     {
       onError: error => {
-        GraphqlError(error);
+        console.log('klklk');
+        // GraphqlError(error);
+        // dispatch({type: ALERT_ERROR, payload: data.updateGroup.message});
       },
       onCompleted: data => {
-        console.log(data, ' daaa');
-        GraphqlSuccess('Updated successfully');
-        setGroupProduct({
-          title: '',
-          attributes: [],
-          variant: [],
-        });
-        navigation.goBack();
+        console.log(data, ' da[[][]aa');
+        if (data.updateGroup.success) {
+          GraphqlSuccess('Updated successfully');
+          setGroupProduct({
+            title: '',
+            attributes: [],
+            variant: [],
+          });
+          navigation.goBack();
+        } else {
+          dispatch({type: ALERT_ERROR, payload: data.updateGroup.message});
+        }
       },
     },
   );
@@ -107,6 +123,16 @@ const AddGroupScreen = ({navigation, route}) => {
   }
 
   const addProduct = () => {
+    if (isEmpty(groupProduct.title)) {
+      setValdiation({...validation, title: 'Name is required'});
+      return
+    }else if (!SPECIAL_CHARACTER_REGEX.test(groupProduct.title)) {
+      setValdiation({
+        ...validation,
+        title: 'Name should contain only letters and numbers',
+      });
+      return
+    } 
     // e.preventDefault();
     // groupProduct.taxClass = taxClass;
     // groupProduct.shipping.shippingClass = shippingClass;
@@ -172,6 +198,7 @@ const AddGroupScreen = ({navigation, route}) => {
         productIds: variations?.map(variation => variation?.productId),
       };
       console.log(JSON.stringify(obj), ' final form');
+      // return;
       if (id) {
         updateGroup({
           variables: {...obj, updateGroupId: id},
@@ -229,6 +256,7 @@ const AddGroupScreen = ({navigation, route}) => {
         convertedVariations = convertedArray;
       }
       // const productVariants = ['65cb2b0ca9dfee40f95226ff', '65cb2b2ba9dfee40f9522716'];
+      console.log(convertedAttributes, ' cbvvv');
       setGroupProduct({
         ...groupProduct,
         attributes: convertedAttributes,
@@ -239,23 +267,39 @@ const AddGroupScreen = ({navigation, route}) => {
       });
     }
   }, [groupProductState, id]);
+
+  if (updateLoading || addedLoading) {
+    return <AppLoader />;
+  }
   return (
-    <ScrollView style={{...styles.container}}>
-      <AppHeader title="Add Group Product" navigation={navigation} />
-      <FormActionsComponent
-        onCancel={() => navigation.goBack()}
-        onSubmit={addProduct}
-        submitText={id ? 'Update' : 'Add'}
-      />
-      <Input
-        label="Name"
-        value={groupProduct.title}
-        onChangeText={value =>
-          setGroupProduct({...groupProduct, ['title']: value})
-        }
-        // errorMessage={validation.title}
-      />
-      <GroupAttributes
+    <ScrollView
+      contentContainerStyle={{
+        paddingBottom: 200,
+        backgroundColor: ThemeColor.whiteColor,
+        flexGrow: 1,
+      }}>
+      <View style={{...styles.container}}>
+        <AppHeader
+          title={id ? 'Edit Group Product' : 'Add Group Product'}
+          navigation={navigation}
+        />
+        <FormActionsComponent
+          onCancel={() => navigation.goBack()}
+          onSubmit={addProduct}
+          submitText={id ? 'Update' : 'Add'}
+        />
+        <Input
+          label="Name"
+          value={groupProduct.title}
+          onChangeText={value =>
+            setGroupProduct({...groupProduct, ['title']: value})
+          }
+          errorMessage={validation.title}
+        />
+      </View>
+      {
+        Platform.OS==='ios'?
+<GroupAttributesIOS
         product={groupProduct}
         productStateChange={({...groupProduct}) =>
           setGroupProduct({
@@ -266,13 +310,25 @@ const AddGroupScreen = ({navigation, route}) => {
           setCombination(combination);
         }}
       />
+      :
+      <GroupAttributes
+        product={groupProduct}
+        productStateChange={({...groupProduct}) =>
+          setGroupProduct({
+            ...groupProduct,
+          })
+        }
+        onCombinationUpdate={combination => {
+          setCombination(combination);
+        }}
+      />}
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    // flex: 1,
     // justifyContent: 'center',
     // alignItems: 'center',
   },

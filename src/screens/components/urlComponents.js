@@ -34,6 +34,7 @@ const URLComponents = ({url, updateOf, changePermalink, updatePermalink}) => {
       <URLWrapper edit={editPremalink}>
         {editPremalink ? (
           <Input
+            style={{color: '#000'}}
             label="Url"
             value={url}
             onChangeText={value => changePermalink(value)}
@@ -41,7 +42,7 @@ const URLComponents = ({url, updateOf, changePermalink, updatePermalink}) => {
         ) : (
           <URLLinkWrapper>
             <URLLabel>URL:</URLLabel>
-            <URLValue>{url}</URLValue>
+            <URLValue>{url ? BASE_URL + 'collection/' + url : ''}</URLValue>
           </URLLinkWrapper>
         )}
         <Divider />
@@ -71,9 +72,11 @@ const URLLabel = styled.Text`
   font-size: 16px;
   font-weight: bold;
   padding-right: 10px;
+  color: gray;
 `;
 const URLValue = styled.Text`
   font-size: 16px;
+  color: #000;
 `;
 const URLBtn = styled.TouchableOpacity`
   background-color: ${Colors.primaryColor};

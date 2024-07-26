@@ -1,6 +1,7 @@
 import React from 'react';
 import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome'; // Assuming you are using FontAwesome, you can replace it with the appropriate icon library
+import ThemeColor from '../../utils/color';
 
 const CustomCheckbox = ({label, onChange, isChecked}) => {
   return (
@@ -35,6 +36,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
+    color:ThemeColor.blackColor
   },
 });
 

@@ -29,7 +29,6 @@ import {query} from '../../utils/service';
 
 export const AppSettingAction = () => async dispatch => {
   const response = await query(GET_APP_SETTING);
-  console.log(JSON.stringify(response), ' sett');
   try {
     if (!isEmpty(_.get(response, 'data.getSettings'))) {
       const currencyOptions = _.get(
@@ -54,17 +53,17 @@ export const AppSettingAction = () => async dispatch => {
         crSymbol =
           currencyOptions.currency_position === 'left_space' ? '₹ ' : ' ₹';
       }
-
       return dispatch({
         type: SETTING_DATA,
         payload: {
           store: _.get(response, 'data.getSettings.store', {}),
           currencySymbol: crSymbol,
+          theme: _.get(response, 'data.getSettings.appearance.theme', {}),
         },
       });
     }
   } catch (error) {
-    console.log(error);
+    console.log(error, ' errrr');
     dispatch({type: SETTING_FAIL});
   }
 };

@@ -9,6 +9,7 @@ const initialState = {
   user_token: {},
   dashBoardData: '',
   setting: [],
+  theme: [],
   loading: false,
 };
 
@@ -37,6 +38,7 @@ export default (state = initialState, action) => {
         loading: false,
         currencyOptions: action.payload.store.currency_options,
         currencySymbol: action.payload.currencySymbol,
+        theme: action.payload.theme,
       };
     case 'USER_LOGOUT':
       return {...initialState};

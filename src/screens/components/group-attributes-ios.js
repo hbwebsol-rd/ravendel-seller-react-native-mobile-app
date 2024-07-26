@@ -188,9 +188,7 @@ const AttributesComponent = ({
     });
     saveAttribute();
   };
-  console.log(currentAttribute,' crtatt')
   const addAttribute = () => {
-    
     if (!currentAttribute.id) {
       //   dispatch({
       //     type: ALERT_SUCCESS,
@@ -224,20 +222,10 @@ const AttributesComponent = ({
     };
 
     currentAttribute.attribute_list.push(attribute_list);
-
-    const idsToRemove = currentAttribute.attribute_list.map(attr => attr.id);
-    const filteredAttributes = AttributesData.data.productAttributes.data.filter(attr => !idsToRemove.includes(attr.id));
-    // const attr = attributeState?.attributes.filter(item=>item.id!=val)
-    console.log(JSON.stringify(filteredAttributes),idsToRemove,' datataat')
-   
-
     currentAttribute.id = '';
     setcurrentAttribute({
       ...currentAttribute,
     });
-    // setAttributeState({
-    //   attributes:filteredAttributes
-    // })
   };
   const saveAttribute = () => {
     // setLoading(true);
@@ -400,7 +388,7 @@ const AttributesComponent = ({
         <AppLoader />
       ) : (
         <>
-          <View style={{paddingHorizontal: 15}}>
+          <View style={{paddingHorizontal: 15,zIndex:5}}>
             <Text>Select Attribute</Text>
             <Multiselect
               inititalselect={currentAttribute.id}
@@ -413,20 +401,11 @@ const AttributesComponent = ({
               inputBgColor={ThemeColor.whiteColor}
               // placeholderFont={FontStyle.fontRegular}
               data={attributeState?.attributes ?? []}
-              onchange={(name, val) =>{
-              //   console.log(attributeState?.attributes,' soloooo')
-              //   if(attributeState?.attributes){
-              //   const attr = attributeState?.attributes.filter(item=>item.id!=val)
-              //   console.log(JSON.stringify(attr),val,' datataat')
-              //   setAttributeState({
-              //     attributes:attr
-              //   })
-              // }
+              onchange={(name, val) =>
                 setcurrentAttribute({
                   ...currentAttribute,
                   id: val,
                 })
-              }
               }
               placeholder={'Select Attribute'}
               // ibbw={1}
@@ -446,7 +425,7 @@ const AttributesComponent = ({
 
           {currentAttribute.attribute_list.length > 0 ? (
             <>
-              <View paddingHorizontal={15} title="Attributes" >
+              <View paddingHorizontal={15} title="Attributes" zIndex={4}>
                 {/* <View style={styles.infocontainer}> */}
                 <View style={styles.info}>
                   <Text style={{fontWeight: 'bold'}}>Name</Text>
@@ -457,8 +436,8 @@ const AttributesComponent = ({
                 {currentAttribute &&
                   currentAttribute?.attribute_list &&
                   currentAttribute.attribute_list.map((attribute, index) => (
-                    <View style={styles.info} >
-                      <Text style={{width: '20%',color:ThemeColor.blackColor}}>{attribute.name}</Text>
+                    <View style={styles.info} zIndex={99-index}>
+                      <Text style={{width: '20%'}}>{attribute.name}</Text>
                       <View style={{width: '70%'}}>
                         <Multiselect
                           valueSchema={'value'}
@@ -526,7 +505,7 @@ const AttributesComponent = ({
               {currentVariants &&
                 currentVariants?.combinations &&
                 currentVariants.combinations.map((variant, index) => (
-                  <View style={styles.info} >
+                  <View style={styles.info} zIndex={99-index}>
                     <Text style={{width: '30%', color: 'black'}}>
                       {' '}
                       {variant.combinations
@@ -573,7 +552,7 @@ const AttributesComponent = ({
   );
 };
 
-const GroupAttributes = ({
+const GroupAttributesIOS = ({
   product,
   productStateChange,
   onCombinationUpdate,
@@ -592,7 +571,7 @@ const GroupAttributes = ({
     </>
   );
 };
-export default GroupAttributes;
+export default GroupAttributesIOS;
 
 const styles = StyleSheet.create({
   overlay: {

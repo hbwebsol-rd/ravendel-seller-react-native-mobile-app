@@ -62,6 +62,7 @@ const CustomMultiSelect = ({
   paddingLeftHeader,
   labelSchema,
   valueSchema,
+  marHori,
 }) => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(inititalselect);
@@ -76,6 +77,12 @@ const CustomMultiSelect = ({
     setOpen(false), handledropdown !== undefined ? handledropdown() : null;
   }, [closedropdown]);
 
+  useEffect(() => {
+    if (inititalselect && !multiple) {
+      setValue(inititalselect);
+      onchange(fieldname, inititalselect);
+    }
+  }, [inititalselect]);
   //   useEffect(() => {
   //     setValue(inititalselect);
   //   }, [reset]);
@@ -86,7 +93,12 @@ const CustomMultiSelect = ({
   //       : null;
   //   }, [newval]);
   return (
-    <View style={Platform.OS === 'ios' ? [{zIndex: vzindex || 20}] : null}>
+    <View
+      style={
+        Platform.OS === 'ios'
+          ? [{zIndex: vzindex || 20, marginHorizontal: marHori || 0}]
+          : null
+      }>
       <View>
         {!isEmpty(heading) && (
           <Text
@@ -142,7 +154,7 @@ const CustomMultiSelect = ({
           multiple={multiple}
           searchable={searchenabled}
           autoScroll={true}
-          mode={mode ?? !multiple ? 'SIMPLE' : ''}
+          mode={!multiple ? 'SIMPLE' : 'BADGE'}
           placeholder={placeholder ?? 'Select'}
           dropDownMaxHeight={300}
           listMode={dropdownstyle ?? 'SCROLLVIEW'}
@@ -150,20 +162,20 @@ const CustomMultiSelect = ({
           scrollViewProps={{
             nestedScrollEnabled: true,
           }}
-          badgeStyle={{
-            height: 17,
-            padding: 0,
-            paddingLeft: 5,
-            paddingRight: 5,
-            paddingBottom: 0,
-            paddingTop: 0,
-          }}
-          badgeDotColors={[ThemeColor.primaryColor]}
-          badgeTextStyle={{
-            fontStyle: 'italic',
-            fontSize: 8,
-            color: ThemeColor.primaryColor,
-          }}
+          // badgeStyle={{
+          //   height: 17,
+          //   padding: 0,
+          //   paddingLeft: 5,
+          //   paddingRight: 5,
+          //   paddingBottom: 0,
+          //   paddingTop: 0,
+          // }}
+          // badgeDotColors={[ThemeColor.primaryColor]}
+          // badgeTextStyle={{
+          //   fontStyle: 'italic',
+          //   fontSize: 8,
+          //   color: ThemeColor.primaryColor,
+          // }}
           // arrowIconStyle={{
           //   opacity: 0,
           // }}
@@ -179,7 +191,7 @@ const CustomMultiSelect = ({
             borderWidth: ibw ?? 0.3,
             borderBottomWidth: ibbw ?? 0.3,
             borderBottomColor: borderBottomColor ?? '#dcdcdc',
-            maxHeight: maxheight ?? 26,
+            maxHeight: 30 ?? 26,
           }}
           placeholderStyle={{
             color: color ?? ThemeColor.grayColor,
@@ -234,6 +246,15 @@ const CustomMultiSelect = ({
             labelStyle: 'labelStyle',
           }}
           dropDownDirection={direction ?? 'BOTTOM'}
+          badgeDotColors={[
+            '#e76f51',
+            '#00b4d8',
+            '#e9c46a',
+            '#e76f51',
+            '#8ac926',
+            '#00b4d8',
+            '#e9c46a',
+          ]}
         />
         {icon ? (
           <Icon

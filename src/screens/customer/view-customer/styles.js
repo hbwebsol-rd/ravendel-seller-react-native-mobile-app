@@ -5,19 +5,21 @@ export const ViewCustomerWrapper = styled.ScrollView`
 `;
 
 export const CustomerProfileRow = styled.View`
-  flex-direction: row;
   padding: 10px 0;
 `;
 export const CustomerProfileLable = styled.Text`
   width: 125px;
   font-size: 16px;
+  color: #000;
 `;
 export const CustomerProfileValue = styled.Text`
   font-size: 16px;
+  color: #000;
 `;
 export const AddressTitle = styled.Text`
   font-size: 16px;
   margin-top: 20px;
+  color: #000;
 `;
 export const AddressWrapper = styled.View`
   background-color: #fff;

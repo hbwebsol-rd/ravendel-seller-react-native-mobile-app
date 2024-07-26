@@ -14,7 +14,7 @@ const ViewCustomerScreen = ({navigation, route}) => {
 
   return (
     <>
-      <AppHeader title="View Customers" navigation={navigation} back />
+      <AppHeader title="View Customer" navigation={navigation} back />
       <SingleCustomerView
         navigation={navigation}
         singleCustomerDetail={singleCustomerDetail}

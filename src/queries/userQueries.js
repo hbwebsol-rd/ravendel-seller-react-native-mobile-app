@@ -107,6 +107,14 @@ const GET_APP_SETTING = gql`
           number_of_decimals
         }
       }
+      appearance {
+        theme {
+          primary_color
+          playstore
+          appstore
+          logo
+        }
+      }
     }
   }
 `;

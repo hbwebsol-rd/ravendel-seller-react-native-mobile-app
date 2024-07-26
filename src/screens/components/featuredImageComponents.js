@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import styled from 'styled-components';
 import Colors from '../../utils/color';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import {Image, PermissionsAndroid} from 'react-native';
+import {Alert, Image, PermissionsAndroid} from 'react-native';
 import {isEmpty} from '../../utils/helper';
 import {BottomSheet, ListItem} from '@rneui/themed';
 import * as ImagePicker from 'react-native-image-picker';
@@ -11,7 +11,6 @@ import ImgToBase64 from 'react-native-image-base64';
 const FeaturedImageComponents = ({image, inputChange, removeImage}) => {
   /* =============================States============================= */
   const [uploadModal, setUploadModal] = useState(false);
-  console.log(image);
   const options = {
     title: 'Select Avatar',
     customButtons: [{name: 'fb', title: 'Choose Photo from Gallery'}],
@@ -40,7 +39,9 @@ const FeaturedImageComponents = ({image, inputChange, removeImage}) => {
           base64String => {
             const file = {
               uri: response.assets[0].uri,
-              file: 'data:image/png;base64,' + base64String,
+              file:
+                'data:image/png;base64,' +
+                base64String.trim().replace(new RegExp('\r?\n', 'g'), ''),
             };
             inputChange(file);
           },
@@ -111,9 +112,8 @@ const FeaturedImageComponents = ({image, inputChange, removeImage}) => {
       {!isEmpty(image) ? (
         <FeatureImageWrapper>
           <Image source={{uri: image.uri}} style={{width: 200, height: 200}} />
-          <RemoveFeatureImageText onPress={removeImage}>
-            <Icon name="close" color={Colors.deleteColor} size={14} /> Remove
-            Image
+          <RemoveFeatureImageText onPress={() => setUploadModal(true)}>
+            <Icon name="image" color={Colors.blue} size={14} /> Change Image
           </RemoveFeatureImageText>
         </FeatureImageWrapper>
       ) : (
@@ -162,7 +162,7 @@ export const FeatureImageWrapper = styled.View`
   align-items: center;
 `;
 export const RemoveFeatureImageText = styled.Text`
-  color: ${Colors.deleteColor};
+  color: ${Colors.blue};
   margin-top: 10px;
 `;
 

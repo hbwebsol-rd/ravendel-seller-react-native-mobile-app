@@ -82,6 +82,21 @@ const App = () => {
   //   );
   // }
 
+  const linking = {
+    prefixes: ['ravendelseller://', 'https://ravendelseller'],
+    config: {
+      initialRouteName: 'Home',
+      screens: {
+        Home: {
+          path: 'Home',
+        },
+        ViewOrder: {
+          path: 'ViewOrder/:id',
+        },
+      },
+    },
+  };
+
   return (
     <>
       <GestureHandlerRootView style={{flex: 1}}>
@@ -89,7 +104,7 @@ const App = () => {
           <ApolloProvider client={APclient}>
             <ThemeProvider theme={theme}>
               <BottomSheetModalProvider>
-                <NavigationContainer>
+                <NavigationContainer linking={linking}>
                   <Navigation />
                 </NavigationContainer>
                 <Alert />

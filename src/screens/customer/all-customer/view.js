@@ -1,17 +1,22 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {ListItem} from '@rneui/themed';
 import {AllCustomerWrapper} from './styles';
 import {useIsFocused} from '@react-navigation/native';
 import AppLoader from '../../components/loader';
-import {FlatList, Text} from 'react-native';
+import {FlatList, StyleSheet, Text, View} from 'react-native';
 import {Query, useQuery} from '@apollo/client';
 import {GET_CUSTOMERS} from '../../../queries/customerQueries';
 import Colors from '../../../utils/color';
 import MainContainer from '../../components/mainContainer';
 import {GraphqlError} from '../../components/garphqlMessages';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import {Input} from '@rneui/base';
+import {capitalizeFirstLetter} from '../../../utils/helper';
 
 const AllCustomerView = ({navigation}) => {
   const isFocused = useIsFocused();
+  const [allCustomers, setAllCustomers] = useState([]);
+  const [inpvalue, setInpvalue] = useState('');
 
   const {loading, error, data, refetch} = useQuery(GET_CUSTOMERS);
   console.log(error, 'a');
@@ -20,6 +25,35 @@ const AllCustomerView = ({navigation}) => {
       refetch();
     }
   }, [isFocused, refetch]);
+
+  const handleinpiut = e => {
+    setInpvalue(e);
+  };
+
+  useEffect(() => {
+    applyFilter();
+  }, [inpvalue]);
+
+  const applyFilter = () => {
+    const filterdata =
+      data &&
+      data.customers.data.filter(data => {
+        // console.log(data, ' d1');
+        const matchesSearch = inpvalue
+          ? Object.values(data).some(val => {
+              return String(val).toLowerCase().includes(inpvalue.toLowerCase());
+            })
+          : true;
+        return matchesSearch;
+      });
+    setAllCustomers(filterdata);
+  };
+
+  useEffect(() => {
+    if (data && data.customers.data) {
+      setAllCustomers(data.customers.data);
+    }
+  }, [data]);
 
   if (loading) {
     return <AppLoader />; // Replace with your loading component
@@ -30,7 +64,7 @@ const AllCustomerView = ({navigation}) => {
     return <Text>Something went wrong. Please try again later</Text>;
   }
 
-  const customers = data.customers.data;
+  // const customers = data.customers.data;
 
   const Item = ({customer, i}) => (
     <>
@@ -42,7 +76,9 @@ const AllCustomerView = ({navigation}) => {
         }>
         <ListItem.Content>
           <ListItem.Title>
-            {customer.firstName + ' ' + customer.lastName}
+            {capitalizeFirstLetter(customer.firstName) +
+              ' ' +
+              customer.lastName}
           </ListItem.Title>
           <ListItem.Subtitle>{customer.phone}</ListItem.Subtitle>
         </ListItem.Content>
@@ -53,8 +89,32 @@ const AllCustomerView = ({navigation}) => {
 
   const renderItem = ({item, i}) => <Item customer={item} i={i} />;
 
-  return customers.length > 0 ? (
+  return true > 0 ? (
     <>
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+        }}>
+        <Input
+          containerStyle={{
+            height: 70,
+            width: '100%',
+          }}
+          inputContainerStyle={styles.inputStyle}
+          label=""
+          value={inpvalue}
+          onChangeText={handleinpiut}
+          placeholder="Search Customers"
+          leftIcon={() => <Icon name="search" color="gray" size={16} />}
+          leftIconContainerStyle={{marginLeft: 15}}
+        />
+        {/* <TouchableOpacity
+            style={styles.filter}
+            onPress={() => setOpenModal(true)}>
+            <Icon name="filter" color="gray" size={30} />
+          </TouchableOpacity> */}
+      </View>
       <FlatList
         initialNumToRender={10}
         keyboardShouldPersistTaps="always"
@@ -62,7 +122,7 @@ const AllCustomerView = ({navigation}) => {
         // refreshControl={
         //   <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         // }
-        data={customers}
+        data={allCustomers}
         renderItem={renderItem}
         ListEmptyComponent={() => (
           <View>
@@ -82,3 +142,17 @@ const AllCustomerView = ({navigation}) => {
 };
 
 export default AllCustomerView;
+const styles = StyleSheet.create({
+  filter: {
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  inputStyle: {
+    borderBottomWidth: 0,
+    borderBottomColor: 'black',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+  },
+});

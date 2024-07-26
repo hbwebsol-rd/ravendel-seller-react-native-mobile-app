@@ -22,10 +22,9 @@ const CustomPicker = ({
   return (
     <>
       {Platform.OS === 'ios' && iosDropdown ? null : null}
-
       {Platform.OS === 'ios' && iosSelect ? null : null}
 
-      {Platform.OS === 'android' ? (
+      {/* {Platform.OS === 'android' ? ( */}
         <View style={[Styles.pickerWrapper, otherWrapperStyle]}>
           <Text style={Styles.pickerLabel}>{label}</Text>
           <Picker
@@ -56,7 +55,7 @@ const CustomPicker = ({
               : null}
           </Picker>
         </View>
-      ) : null}
+      {/* ) : null} */}
     </>
   );
 };

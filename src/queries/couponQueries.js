@@ -20,6 +20,7 @@ const GET_COUPONS = gql`
         excludeCategories
         date
         updated
+        categoryTree
       }
       message {
         message
@@ -75,6 +76,7 @@ const ADD_COUPON = gql`
     $category: Boolean
     $includeCategories: customArray
     $excludeCategories: customArray
+    $categoryTree: customArray
   ) {
     addCoupon(
       code: $code
@@ -91,6 +93,7 @@ const ADD_COUPON = gql`
       category: $category
       includeCategories: $includeCategories
       excludeCategories: $excludeCategories
+      categoryTree: $categoryTree
     ) {
       message
       success

@@ -1,6 +1,6 @@
 import React from 'react';
 import {StatusBar} from 'react-native';
-import {Header} from "@rneui/themed";
+import {Header} from '@rneui/themed';
 import Colors from '../../utils/color';
 import {View} from 'react-native';
 // import InternetConnectivity from './internet-connectivity';
@@ -18,6 +18,7 @@ const AppHeader = ({title, navigation, back}) => {
     <>
       <StatusBar backgroundColor={Colors.primaryColor} />
       <Header
+        backgroundColor={'#154050'}
         leftComponent={{
           icon: back ? 'chevron-left' : 'menu',
           color: '#fff',

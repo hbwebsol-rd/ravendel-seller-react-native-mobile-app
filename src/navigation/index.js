@@ -47,13 +47,16 @@ import {isEmpty} from '../utils/helper';
 import SplashScreen from '../screens/components/splash-screen';
 import {setToken} from '../utils/api';
 import Test from '../screens/dashboard/test';
+import {AppSettingAction} from '../store/action/dashboardAction';
+import {useDispatch, useSelector} from 'react-redux';
 
 const Drawer = createDrawerNavigator();
 const Auth = createStackNavigator();
 
 const Navigation = () => {
+  const dispatch = useDispatch();
   const AuthState = useContext(AuthContext);
-  console.log(JSON.stringify(AuthState), 'authstae');
+
   const [loading, setLoading] = useState(true);
   setTimeout(() => {
     setLoading(false);
@@ -67,6 +70,10 @@ const Navigation = () => {
     if (AuthState && AuthState.state.token === null) {
       AuthState.checkIsLoggedIn();
     }
+  }, []);
+
+  useEffect(() => {
+    dispatch(AppSettingAction());
   }, []);
 
   return (
@@ -159,13 +166,13 @@ const Navigation = () => {
                 component={CustomersScreen}
               /> */}
 
-              <Drawer.Screen name="Profile" component={ProfileScreen} />
+              {/* <Drawer.Screen name="Profile" component={ProfileScreen} /> */}
 
               <Drawer.Screen name="Order" component={AllOrdersScreen} />
               <Drawer.Screen name="ViewOrder" component={ViewOrderScreen} />
               {/* <Drawer.Screen name="OrdersScreen" component={OrdersScreen} /> */}
 
-              <Drawer.Screen name="Setting" component={SettingScreen} />
+              {/* <Drawer.Screen name="Setting" component={SettingScreen} /> */}
             </Drawer.Navigator>
           ) : (
             <Auth.Navigator initialRouteName="Login">

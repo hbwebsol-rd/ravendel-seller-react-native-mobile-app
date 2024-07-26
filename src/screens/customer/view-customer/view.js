@@ -24,41 +24,38 @@ const SingleCustomerView = ({singleCustomerDetail, navigation}) => {
       setSingleCustomer(singleCustomerDetail);
     }
   }, [singleCustomerDetail]);
-
+  console.log(singleCustomerDetail)
   return (
     <ViewCustomerWrapper>
       {!isEmpty(singleCustomer) ? (
         <>
           <CustomerProfileRow>
-            <CustomerProfileLable>Name</CustomerProfileLable>
+            <CustomerProfileLable>Name :</CustomerProfileLable>
             <CustomerProfileValue>
               {singleCustomer.firstName + ' ' + singleCustomer.lastName}
             </CustomerProfileValue>
           </CustomerProfileRow>
           <CustomerProfileRow>
-            <CustomerProfileLable>Phone</CustomerProfileLable>
+            <CustomerProfileLable>Phone :</CustomerProfileLable>
             <CustomerProfileValue>{singleCustomer.phone}</CustomerProfileValue>
           </CustomerProfileRow>
           <CustomerProfileRow>
-            <CustomerProfileLable>Email</CustomerProfileLable>
-            <CustomerProfileValue
-              style={{width: '65%'}}
-              // ellipsizeMode="head"
-              numberOfLines={1}>
+            <CustomerProfileLable>Email :</CustomerProfileLable>
+            <CustomerProfileValue>
               {singleCustomer.email}
             </CustomerProfileValue>
           </CustomerProfileRow>
-          <CustomerProfileRow>
+          {/* <CustomerProfileRow>
             <CustomerProfileLable>Company</CustomerProfileLable>
             <CustomerProfileValue>
               {singleCustomer.company}
             </CustomerProfileValue>
-          </CustomerProfileRow>
-          {singleCustomer.address_book &&
-          singleCustomer.address_book.length > 0 ? (
+          </CustomerProfileRow> */}
+          {singleCustomer.addressBook &&
+          singleCustomer.addressBook.length > 0 ? (
             <>
               <AddressTitle>Address</AddressTitle>
-              {singleCustomer.address_book.map((address, i) => (
+              {singleCustomer.addressBook.map((address, i) => (
                 <AddressWrapper key={i}>
                   {address.default_address ? (
                     <DefaultAddress>
@@ -67,20 +64,33 @@ const SingleCustomerView = ({singleCustomerDetail, navigation}) => {
                   ) : null}
                   <AddressRow>
                     <AddressLabel>
+                      {
+                        address.addressType==='Home'?
+                        <Icon name="home" size={16} color="#505050" />:<Icon  name="building" size={16} color="#505050" />
+                      }
+                      
+                    </AddressLabel>
+                    <AddressValue>
+                      {' '}
+                      {address.addressType}
+                    </AddressValue>
+                  </AddressRow>
+                  <AddressRow>
+                    <AddressLabel>
                       <Icon name="user-circle" size={16} color="#505050" />
                     </AddressLabel>
                     <AddressValue>
                       {' '}
-                      {address.first_name + ' ' + address.last_name}
+                      {address.firstName + ' ' + address.lastName}
                     </AddressValue>
                   </AddressRow>
-                  <AddressRow>
+                  {/* <AddressRow>
                     <AddressLabel>
                       <Icon name="building" size={16} color="#505050" />
                     </AddressLabel>
 
                     <AddressValue>{address.company}</AddressValue>
-                  </AddressRow>
+                  </AddressRow> */}
                   <AddressRow>
                     <AddressLabel>
                       <Icon name="phone-alt" size={16} color="#505050" />
@@ -92,9 +102,9 @@ const SingleCustomerView = ({singleCustomerDetail, navigation}) => {
                       <Icon name="address-card" size={16} color="#505050" />
                     </AddressLabel>
                     <AddressValue>
-                      {address.address_line1 +
+                      {address.addressLine1 +
                         ', ' +
-                        address.address_line2 +
+                        address.addressLine2 +
                         ', ' +
                         address.city +
                         ', ' +

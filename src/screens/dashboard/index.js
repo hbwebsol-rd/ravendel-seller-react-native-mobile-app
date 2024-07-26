@@ -26,9 +26,7 @@ const DashboardScreen = ({navigation}) => {
     error,
     JSON.stringify(data?.dashboardData?.productCount),
   );
-  useEffect(() => {
-    dispatch(AppSettingAction());
-  }, []);
+
   // console.log(JSON.stringify(data), 'dbb data');
   if (loading) {
     return <AppLoader />;
@@ -39,25 +37,25 @@ const DashboardScreen = ({navigation}) => {
       <AppHeader title="Dashboard" navigation={navigation} />
       <ScrollView>
         <DashbaordCardWrapper>
-          <DashbaordCard onPress={() => navigation.navigate('Order')}>
+          <DashbaordCard>
             <DashbaordCardTitle>Total Users</DashbaordCardTitle>
             <DashbaordCardValue>
               {data?.dashboardData?.userCount}
             </DashbaordCardValue>
           </DashbaordCard>
-          <DashbaordCard>
+          <DashbaordCard onPress={() => navigation.navigate('AllProduct')}>
             <DashbaordCardTitle>Total Product</DashbaordCardTitle>
             <DashbaordCardValue>
               {data?.dashboardData?.productCount}
             </DashbaordCardValue>
           </DashbaordCard>
-          <DashbaordCard onPress={() => navigation.navigate('AllProducts')}>
+          <DashbaordCard onPress={() => navigation.navigate('AllCustomers')}>
             <DashbaordCardTitle>Total Customers</DashbaordCardTitle>
             <DashbaordCardValue>
               {data?.dashboardData?.customerCount}
             </DashbaordCardValue>
           </DashbaordCard>
-          <DashbaordCard onPress={() => navigation.navigate('AllCustomers')}>
+          <DashbaordCard onPress={() => navigation.navigate('Order')}>
             <DashbaordCardTitle>Total Sales</DashbaordCardTitle>
             <DashbaordCardValue>
               {formatCurrency(
@@ -69,7 +67,7 @@ const DashboardScreen = ({navigation}) => {
           </DashbaordCard>
           <DashbaordCard
             onPress={() =>
-              navigation.navigate(false ? 'ProductsScreen' : 'Test', {
+              navigation.navigate(true ? 'AddProduct' : 'Test', {
                 screen: 'AddProduct',
                 initial: false,
               })
