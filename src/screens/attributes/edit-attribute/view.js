@@ -28,20 +28,21 @@ const EditAttrView = ({navigation, singleAttrID}) => {
     if (data && data.productAttribute) {
       setLoadingState(false);
       var valuesArray = data.productAttribute.data.values;
-      var string = valuesArray && valuesArray.map(val => val.name).join('\n');
-      data.productAttribute.data.values = string;
-      const newAttribute = {
+      var string = valuesArray && valuesArray.map(val => val.name)
+      // data.productAttribute.data.values = string;
+      const newAttributes = {
         name: data.productAttribute.data.name,
-        value: string,
+        value: string.join('\n'),
         allow_filter: data.productAttribute.data.allow_filter,
         values: valuesArray,
       };
-      // console.log(
-      //   newAttribute,
-      //   ' nat',
-      //   data.productAttribute.data.allow_filter,
-      // );
-      setAttribute(newAttribute);
+      // const newAttribute = {
+      //   name: '',
+      //   value: '',
+      //   allow_filter: '',
+      //   values: [],
+      // };
+      setAttribute(newAttributes);
     }
   }, [data]);
 
@@ -77,7 +78,7 @@ const EditAttrView = ({navigation, singleAttrID}) => {
       setValdiation({
         ...validation,
         name: '',
-        value: 'Attribute can only contain  letters and numbers',
+        value: 'Attribute can only contain letters and numbers',
       });
     } else {
       setValdiation({
@@ -94,7 +95,7 @@ const EditAttrView = ({navigation, singleAttrID}) => {
         } else {
           return {name: val.trim()};
         }
-      });
+      }).filter(item=>!isEmpty(item.name));
       attribute.values = valuesArray;
       setAttribute({...attribute});
       var attrObject = {

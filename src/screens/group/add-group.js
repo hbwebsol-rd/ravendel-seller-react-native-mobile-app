@@ -29,7 +29,6 @@ const AddGroupScreen = ({navigation, route}) => {
     title: '',
   });
   const id = route?.params?.id;
-  console.log(id, 'iddd');
   const [addGroup, {loading: addedLoading}] = useMutation(ADD_GROUP_PRODUCT, {
     onError: error => {
       console.log(error);
@@ -256,7 +255,7 @@ const AddGroupScreen = ({navigation, route}) => {
         convertedVariations = convertedArray;
       }
       // const productVariants = ['65cb2b0ca9dfee40f95226ff', '65cb2b2ba9dfee40f9522716'];
-      console.log(convertedAttributes, ' cbvvv');
+      // console.log(convertedAttributes, ' cbvvv');
       setGroupProduct({
         ...groupProduct,
         attributes: convertedAttributes,

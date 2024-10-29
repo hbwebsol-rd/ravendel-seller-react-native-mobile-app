@@ -13,7 +13,7 @@ import {
 import CustomPicker from '../../components/custom-picker';
 import FormActionsComponent from '../../components/formAction';
 import {GraphqlError, GraphqlSuccess} from '../../components/garphqlMessages';
-import {BASE_URL, unflatten} from '../../../utils/helper';
+import {BASE_URL, isEmpty, unflatten} from '../../../utils/helper';
 import {Picker} from '@react-native-picker/picker';
 import {Text, View} from 'react-native';
 import URLComponents from '../../components/urlComponents';
@@ -91,9 +91,9 @@ const AddCategoryView = ({navigation}) => {
         // image: [categoryForm.image],
         // thumbnail_image: [categoryForm.thumbnail_image],
         meta: {
-          title: categoryForm.meta.title,
-          description: categoryForm.meta.description,
-          keywords: categoryForm.meta.keywords,
+          title: categoryForm.meta.title.trim(),
+          description: categoryForm.meta.description.trim(),
+          keywords: categoryForm.meta.keywords.trim(),
         },
       };
 

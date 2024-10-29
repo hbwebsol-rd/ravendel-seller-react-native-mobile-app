@@ -130,9 +130,9 @@ const EditCategoryView = ({navigation, singleCategoryDetail}) => {
           ? [categoryForm.upload_thumbnail_image]
           : '',
         meta: {
-          title: categoryForm.meta.title,
-          description: categoryForm.meta.description,
-          keywords: categoryForm.meta.keywords,
+          title: categoryForm.meta.title.trim(),
+          description: categoryForm.meta.description.trim(),
+          keywords: categoryForm.meta.keywords.trim(),
         },
       };
       console.log(JSON.stringify(categoryObject), ' editcategory payload');
@@ -185,7 +185,6 @@ const EditCategoryView = ({navigation, singleCategoryDetail}) => {
               <Text style={{fontSize: 15, marginLeft: 8, fontWeight: '600'}}>
                 Parent Category
               </Text>
-              {console.log(categoryForm.parentId, ' catt')}
               <Multiselect
                 height={50}
                 inititalselect={categoryForm.parentId}
@@ -194,7 +193,6 @@ const EditCategoryView = ({navigation, singleCategoryDetail}) => {
                 inputBgColor={ThemeColor.whiteColor}
                 data={allCategories ? allCategories : []}
                 onchange={(name, itemValue) => {
-                  console.log(itemValue, 'iiv');
                   setCategoryForm({...categoryForm, ['parentId']: itemValue});
                 }}
                 placeholder={''}

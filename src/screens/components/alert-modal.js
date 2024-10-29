@@ -8,7 +8,6 @@ const Alert = () => {
   const dispatch = useDispatch();
   const alert = useSelector(state => state.alert);
   const [isOpen, setisOpen] = useState(false);
-  console.log(alert, 'aaa');
   const HideAlert = () => {
     // setTimeout(() => {
     //   setisOpen(false);

@@ -155,7 +155,7 @@ const EditBrandView = ({navigation, singleBrandDetail}) => {
                     inputChange={img => {
                       setBrandForm({
                         ...brandFrom,
-                        ['update_brand_logo']: img,
+                        ['updated_brand_logo']: img,
                       });
                       setFeatureImage(img);
                     }}

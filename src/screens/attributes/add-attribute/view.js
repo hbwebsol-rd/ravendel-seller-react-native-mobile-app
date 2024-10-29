@@ -54,7 +54,7 @@ const AddAttrView = ({navigation}) => {
       setValdiation({
         ...validation,
         name: '',
-        value: 'Attribute can only contain  letters and numbers',
+        value: 'Attribute can only contain letters and numbers',
       });
     } else {
       setValdiation({
@@ -67,7 +67,7 @@ const AddAttrView = ({navigation}) => {
         return {
           name: val.trim(),
         };
-      });
+      }).filter(item=>!isEmpty(item.name));
       attribute.arrayValue = valuesArray;
       setAttribute({...attribute});
       var attrObject = {

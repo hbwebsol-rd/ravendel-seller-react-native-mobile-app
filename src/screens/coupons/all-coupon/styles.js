@@ -1,8 +1,6 @@
 import styled from 'styled-components';
 
-export const CouponCardWrapper = styled.ScrollView`
-  padding: 10px;
-`;
+export const CouponCardWrapper = styled.ScrollView``;
 export const CouponCard = styled.View`
   width: 100%;
   margin: 1% 0;

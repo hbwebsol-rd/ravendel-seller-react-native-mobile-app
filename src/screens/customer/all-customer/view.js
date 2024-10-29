@@ -19,7 +19,6 @@ const AllCustomerView = ({navigation}) => {
   const [inpvalue, setInpvalue] = useState('');
 
   const {loading, error, data, refetch} = useQuery(GET_CUSTOMERS);
-  console.log(error, 'a');
   React.useEffect(() => {
     if (isFocused) {
       refetch();
@@ -38,7 +37,6 @@ const AllCustomerView = ({navigation}) => {
     const filterdata =
       data &&
       data.customers.data.filter(data => {
-        // console.log(data, ' d1');
         const matchesSearch = inpvalue
           ? Object.values(data).some(val => {
               return String(val).toLowerCase().includes(inpvalue.toLowerCase());
@@ -78,7 +76,7 @@ const AllCustomerView = ({navigation}) => {
           <ListItem.Title>
             {capitalizeFirstLetter(customer.firstName) +
               ' ' +
-              customer.lastName}
+              capitalizeFirstLetter(customer.lastName)}
           </ListItem.Title>
           <ListItem.Subtitle>{customer.phone}</ListItem.Subtitle>
         </ListItem.Content>

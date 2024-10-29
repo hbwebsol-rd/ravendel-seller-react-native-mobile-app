@@ -38,6 +38,7 @@ import {DELETE_PRODUCT} from '../../../queries/productQueries';
 import {useMutation} from '@apollo/client';
 import ThemeColor from '../../../utils/color';
 import ImgToBase64 from 'react-native-image-base64';
+import {GraphqlSuccess} from '../../components/garphqlMessages';
 
 /* =============================Upload Featured Image and Gallery Options============================= */
 const options = {
@@ -111,7 +112,7 @@ const EditProductView = ({
       },
       onCompleted: data => {
         // Handle completion as needed
-        // GraphqlSuccess('Deleted successfully');
+        GraphqlSuccess('Product deleted successfully');
         console.log('Product deleted successfully:', data);
         navigation.goBack();
         // refetch();
@@ -234,7 +235,7 @@ const EditProductView = ({
         </View>
         <Button title="Save" onPress={update} />
       </View>
-      <AddFormWrapper>
+      <AddFormWrapper automaticallyAdjustKeyboardInsets={true}>
         {/* =================================Product Information============================== */}
         <AddFormSections>
           <Input

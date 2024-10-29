@@ -368,17 +368,22 @@ const AddProductsScreen = ({navigation}) => {
 
     const result = [];
     emptyGroup = false;
-    console.log(JSON.stringify(groups), ' grr');
+    // console.log(JSON.stringify(groups), ' grr');
     groups.forEach((group, index) => {
-      if (
-        isEmpty(group.name) ||
-        isEmpty(group.attributes[index].keyId) ||
-        isEmpty(group.attributes[index].valueId)
-      ) {
-        emptyGroup = true;
+      if (isEmpty(group.name)) {
+        if (index != 0) {
+          emptyGroup = true;
+        }
         return;
       }
-      group.attributes.forEach(attribute => {
+      group.attributes.forEach((attribute, aIndex) => {
+        if (isEmpty(attribute.keyId) || isEmpty(attribute.valueId)) {
+          if (index != 0) {
+            emptyGroup = true;
+          }
+          return;
+        }
+
         result.push({
           attributeId: attribute.keyId,
           key: attribute.key,
@@ -434,7 +439,7 @@ const AddProductsScreen = ({navigation}) => {
     const filteredData = filterTreeData(addProductDetail.categoryTree);
 
     var details = {
-      name: name,
+      name: name.trim(),
       url: url,
       categoryId: categoryId,
       brand: brand,
@@ -448,21 +453,29 @@ const AddProductsScreen = ({navigation}) => {
       product_type: product_type,
       shipping: shipping,
       taxClass: tax_class,
-      meta: meta,
+      meta: {
+        title: meta.title.trim(),
+        description: meta.description.trim(),
+        keywords: meta.keywords.trim(),
+      },
       custom_field: custom_field,
       attribute: attribute,
       variant: variant,
       combinations: combinations,
-      specifications: result,
       categoryTree: filteredData,
     };
+
+    if (!isEmpty(result)) {
+      details.specifications = result;
+    }
+
     if (feautred_image?.file) {
       details.feature_image = [feautred_image];
     }
     if (!isEmpty(gallery_image)) {
       details.gallery_image = gallery_image;
     }
-    console.log('Product Payload', details);
+    console.log('Product Payload', JSON.stringify(details));
     // return;
     addProduct({variables: details});
   };
@@ -513,7 +526,15 @@ const AddProductsScreen = ({navigation}) => {
         // placeholderFont={FontStyle.fontRegular}
         data={allProducts ?? []}
         onchange={async (name, singleProductid) => {
-          if (singleProductid) {
+          if (
+            !isEmpty(singleProductid) &&
+            typeof singleProductid === 'string'
+          ) {
+            console.log(
+              'hyyy',
+              singleProductid,
+              typeof singleProductid === 'string',
+            );
             const response = await query(GET_PRODUCT, {id: singleProductid});
             const singleProduct = response.data.product.data;
 
@@ -572,8 +593,18 @@ const AddProductsScreen = ({navigation}) => {
               );
               setGalleryImages(allGalleryImage);
             }
-
-            setGroups(cvdata);
+            setGroups(
+              isEmpty(cvdata)
+                ? [
+                    {
+                      name: '',
+                      attributes: [
+                        {key: '', value: '', keyId: '', valueId: ''},
+                      ],
+                    },
+                  ]
+                : cvdata,
+            );
             setAddProductDetail(newData);
             setProduct(singleProduct);
             console.log(cvdata, 'ccdd');

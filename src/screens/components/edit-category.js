@@ -292,6 +292,7 @@ const EditCategoriesComponent = ({
   };
   return (
     <>
+      {/* {console.log(JSON.stringify(catList), 'category list')} */}
       {catList && catList.length ? (
         <View
           style={{

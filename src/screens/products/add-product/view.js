@@ -209,7 +209,7 @@ const AddProductView = ({
         </View>
         <Button title="Add" onPress={onAdd} />
       </View>
-      <AddFormWrapper>
+      <AddFormWrapper automaticallyAdjustKeyboardInsets={true}>
         {/* =================================Product Information============================== */}
         <AddFormSections>
           <Input
@@ -332,7 +332,6 @@ const AddProductView = ({
           selectedCategories={categoryId}
           onCategoryChange={items => {
             if (items && items?.length > 0) {
-              console.log(items, ' ioio');
               const checkedIds = getCheckedIds(items);
               console.log(checkedIds);
 
@@ -362,7 +361,6 @@ const AddProductView = ({
         {/* =================================Attributes============================== */}
         <AddFormSections>
           <AddFormSectionTitle>Attributes</AddFormSectionTitle>
-          {console.log(removeItemFromGroup, ' lolo')}
           <Specification
             data={attributes}
             attribute={attribute}

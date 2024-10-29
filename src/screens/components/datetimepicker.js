@@ -1,11 +1,12 @@
 import moment from 'moment';
 import React, {useState, useRef} from 'react';
-import {Platform, Text, TouchableOpacity, View} from 'react-native';
+import {Platform, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import DatePicker from 'react-native-date-picker';
 import RBSheet from 'react-native-raw-bottom-sheet';
 // import {AButton, AText} from '.';
 import {isEmpty} from '../../utils/helper';
 import {Button} from 'react-native';
+import ThemeColor from '../../utils/color';
 
 const CustomDatePicker = ({
   onClose,
@@ -108,12 +109,12 @@ const CustomDatePicker = ({
               marginTop: 10,
               width: '40%',
             }}>
-            <Button
+            <TouchableOpacity
+              style={styles.btnStyle}
               title={'SUBMIT'}
-              //   color={'white'}
-              onPress={handleCancel}
-              mb={Platform.OS === 'ios' ? 30 : 0}
-            />
+              onPress={handleCancel}>
+              <Text style={{color: ThemeColor.whiteColor}}>SUBMIT</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </RBSheet>
@@ -122,3 +123,14 @@ const CustomDatePicker = ({
 };
 
 export default CustomDatePicker;
+const styles = StyleSheet.create({
+  btnStyle: {
+    width: '45%',
+    borderRadius: 8,
+    alignSelf: 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 8,
+    backgroundColor: ThemeColor.primaryColor,
+  },
+});

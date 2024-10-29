@@ -99,7 +99,7 @@ const ShippingComponent = ({
           <Input
             keyboardType="numeric"
             type="number"
-            label="Weigth"
+            label="Weight"
             value={shipping.weight.toString()}
             onChangeText={value => onShippingInput('weight', value)}
           />

@@ -6,6 +6,7 @@ import {
   StyleSheet,
   View,
   Keyboard,
+  Platform,
 } from 'react-native';
 import Colors from '../../../utils/color';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -16,23 +17,46 @@ const Editor = ({data, onEditorChange, edit}) => {
   const [disabled, setDisabled] = useState(false);
   const [editorHeight, setEditorHeight] = useState(150);
   const themeBg = {backgroundColor: Colors.primaryColor};
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        setKeyboardVisible(true); // or some other action
+      },
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        setKeyboardVisible(false); // or some other action
+      },
+    );
+
+    return () => {
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
+    };
+  }, []);
 
   const insertHTML = () => {
-    EditorRef.current?.insertHTML(
-      '<span style="color: blue; padding:0 10px;">HTML</span>',
-    );
+    EditorRef.current?.insertHTML('');
   };
 
   useEffect(() => {
-    console.log('running now', data);
-    // EditorRef.current?.insertHTML(data);
-  }, []);
+    if (!edit && !isKeyboardVisible) {
+      console.log('Data change just NOW', data);
+      // EditorRef.current?.insertHTML('');
+      EditorRef.current?.setContentHTML(data);
+    }
+  }, [data]);
 
   const handleChange = html => {
     onEditorChange(html);
   };
 
   const handleHeightChange = height => {
+    console.log(height);
     setEditorHeight(height);
   };
   useEffect(() => {
@@ -45,8 +69,10 @@ const Editor = ({data, onEditorChange, edit}) => {
 
   return (
     <SafeAreaView>
-      <KeyboardAvoidingView behavior={'position'} enabled>
-        <View style={{height: editorHeight}}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? '' : null}
+        enabled>
+        <View style={{minHeight: 150}}>
           {!isEmpty(data) && edit ? (
             <RichEditor
               editorStyle={{backgroundColor: '#eee'}}
@@ -59,7 +85,7 @@ const Editor = ({data, onEditorChange, edit}) => {
               style={{flex: 1}}
               useContainer={true}
             />
-          ) : (
+          ) : !edit ? (
             <RichEditor
               editorStyle={{backgroundColor: '#eee'}}
               ref={EditorRef}
@@ -67,11 +93,11 @@ const Editor = ({data, onEditorChange, edit}) => {
               placeholder={'Please enter description'}
               initialContentHTML={data}
               onChange={handleChange}
-              onHeightChange={handleHeightChange}
+              onHeightChange={() => handleHeightChange()}
               style={{flex: 1}}
               useContainer={true}
             />
-          )}
+          ) : null}
         </View>
         <RichToolbar
           style={[styles.richBar, themeBg]}

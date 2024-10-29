@@ -15,6 +15,11 @@ export const CustomerProfileLable = styled.Text`
 export const CustomerProfileValue = styled.Text`
   font-size: 16px;
   color: #000;
+  text-transform:capitalize;
+`;
+export const CustomerEmailValue = styled.Text`
+  font-size: 16px;
+  color: #000;
 `;
 export const AddressTitle = styled.Text`
   font-size: 16px;
@@ -39,6 +44,7 @@ export const AddressValue = styled.Text`
   flex-wrap: wrap;
   width: 90%;
   color: #505050;
+  text-transform:capitalize;
 `;
 export const DefaultAddress = styled.Text`
   align-self: flex-end;

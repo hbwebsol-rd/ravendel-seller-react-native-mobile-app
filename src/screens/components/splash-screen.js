@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components/native';
 import {Dimensions} from 'react-native';
 import Colors from '../../utils/color';
+import { APP_NAME } from '../../utils/helper';
 
 const windowHeight = Dimensions.get('window').height;
 const windowWidth = Dimensions.get('window').width;
@@ -24,7 +25,7 @@ const AText = styled.Text`
 const SplashScreen = () => {
   return (
     <AView>
-      <AText>Ravendel</AText>
+      <AText>{APP_NAME}</AText>
     </AView>
   );
 };

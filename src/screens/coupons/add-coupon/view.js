@@ -21,7 +21,7 @@ import {useMutation} from '@apollo/client';
 import FormActionsComponent from '../../components/formAction';
 import MulipleSelect from '../../components/multiple-selection';
 import {GraphqlError, GraphqlSuccess} from '../../components/garphqlMessages';
-import {getCheckedIds} from '../../../utils/helper';
+import {getCheckedIds, isEmpty} from '../../../utils/helper';
 import EditCategoriesComponent from '../../components/edit-category';
 import {ALERT_ERROR, ALERT_SUCCESS} from '../../../store/reducer/alert';
 import {useDispatch} from 'react-redux';
@@ -116,15 +116,15 @@ const AddCouponsForm = ({navigation}) => {
   };
 
   const AddCouponCodeForm = () => {
-    if (couponForm.code === '') {
+    if (isEmpty(couponForm.code)) {
       setValdiation({...validation, code: 'Code is required'});
-    } else if (couponForm.description === '') {
+    } else if (isEmpty(couponForm.description)) {
       setValdiation({
         ...validation,
         code: '',
         description: 'Description is required',
       });
-    } else if (couponForm.discountValue === '') {
+    } else if (isEmpty(couponForm.discountValue)) {
       setValdiation({
         ...validation,
         code: '',

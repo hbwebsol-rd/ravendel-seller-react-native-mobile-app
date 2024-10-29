@@ -182,13 +182,14 @@ const AttributesComponent = ({
   };
 
   const deleteAttribute = i => {
+    console.log(i,JSON.stringify(currentAttribute.attribute_list))
     currentAttribute.attribute_list.splice(i, 1);
     setcurrentAttribute({
       ...currentAttribute,
     });
     saveAttribute();
   };
-  console.log(currentAttribute,' crtatt')
+  // console.log(currentAttribute,' crtatt')
   const addAttribute = () => {
     
     if (!currentAttribute.id) {
@@ -228,7 +229,7 @@ const AttributesComponent = ({
     const idsToRemove = currentAttribute.attribute_list.map(attr => attr.id);
     const filteredAttributes = AttributesData.data.productAttributes.data.filter(attr => !idsToRemove.includes(attr.id));
     // const attr = attributeState?.attributes.filter(item=>item.id!=val)
-    console.log(JSON.stringify(filteredAttributes),idsToRemove,' datataat')
+    // console.log(JSON.stringify(filteredAttributes),idsToRemove,' datataat')
    
 
     currentAttribute.id = '';
@@ -460,6 +461,7 @@ const AttributesComponent = ({
                     <View style={styles.info} >
                       <Text style={{width: '20%',color:ThemeColor.blackColor}}>{attribute.name}</Text>
                       <View style={{width: '70%'}}>
+                        {console.log(attribute.selected_values,'selected val attrivute')}
                         <Multiselect
                           valueSchema={'value'}
                           labelSchema={'label'}

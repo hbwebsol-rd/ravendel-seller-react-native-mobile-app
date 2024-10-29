@@ -1,6 +1,7 @@
 import createDataContext from './createDataContext';
 import SyncStorage from 'sync-storage';
 import {isEmpty} from '../utils/helper';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const authReducer = (state, action) => {
   switch (action.type) {
@@ -47,8 +48,9 @@ const signout = (dispatch) => {
 
 const checkIsLoggedIn = (dispatch) => {
   return async () => {
-    const Token = SyncStorage.get('token');
-    const User = SyncStorage.get('user');
+    const Token =await AsyncStorage.getItem('token') //SyncStorage.get('token');
+    const User = await AsyncStorage.getItem('user') //SyncStorage.get('user');
+    console.log(Token,User,' token user')
     if (!isEmpty(Token) && !isEmpty(User)) {
       dispatch({
         type: 'alreadyLogin',

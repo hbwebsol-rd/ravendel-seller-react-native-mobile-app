@@ -121,8 +121,8 @@ const AllBrandsView = ({navigation}) => {
   const renderItem = ({item, i}) => <Item brand={item} i={i} />;
 
   return (
-    <MainContainer>
-      <AllCategoriesWrapper>
+    <View style={styles.container}>
+      {/* <AllCategoriesWrapper> */}
         <>
           {deleteLoading ? <AppLoader /> : null}
           <View
@@ -147,6 +147,7 @@ const AllBrandsView = ({navigation}) => {
           {/* {brands.length && ( */}
           <>
             <FlatList
+              contentContainerStyle={{marginHorizontal: 10}}
               initialNumToRender={10}
               keyboardShouldPersistTaps="always"
               showsVerticalScrollIndicator={false}
@@ -212,12 +213,15 @@ const AllBrandsView = ({navigation}) => {
             <ErrorText>No Data</ErrorText>
           )} */}
         </>
-      </AllCategoriesWrapper>
-    </MainContainer>
+      {/* </AllCategoriesWrapper> */}
+    </View>
   );
 };
 export default AllBrandsView;
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   inputStyle: {
     borderBottomWidth: 0,
     borderBottomColor: 'black',

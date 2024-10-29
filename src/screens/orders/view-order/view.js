@@ -29,11 +29,13 @@ import {
 } from '../../../utils/helper';
 import {Text} from '@rneui/base';
 import AppLoader from '../../components/loader';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {View} from 'react-native';
+import { AppSettingAction } from '../../../store/action/dashboardAction';
 
 const OrderView = ({navigation, orderDetail, id}) => {
   // console.log(orderDetail.id);
+  const dispatch = useDispatch()
   const {loading, error, data, refetch} = useQuery(GET_ORDER, {
     notifyOnNetworkStatusChange: true,
     variables: {id: id},
@@ -43,10 +45,12 @@ const OrderView = ({navigation, orderDetail, id}) => {
   );
   const [orderData, setOrderData] = useState([]);
 
+
   useEffect(() => {
     if (data?.order) {
       setOrderData(data.order.data);
     }
+    dispatch(AppSettingAction());
   }, [data]);
 
   if (loading || isEmpty(orderData)) {
@@ -70,30 +74,19 @@ const OrderView = ({navigation, orderDetail, id}) => {
         <OrderInfoRow>
           <OrderInfoLabel>Payment Status</OrderInfoLabel>
           <OrderInfoVal>
-            {console.log(JSON.stringify(orderData))}
             {capitalizeFirstLetter(orderData?.paymentStatus)}
           </OrderInfoVal>
         </OrderInfoRow>
         <OrderInfoRow>
           <OrderInfoLabel>Shipping Status</OrderInfoLabel>
           <OrderInfoVal>
-            {capitalizeFirstLetter(orderData?.shippingStatus)}
+            {orderData?.shippingStatus==='outfordelivery'?'Out for Delivery':orderData?.shippingStatus==='inprogress'?'In Progress':capitalizeFirstLetter(orderData?.shippingStatus)}
           </OrderInfoVal>
         </OrderInfoRow>
-        {/* <OrderInfoRow>
-          <OrderInfoLabel>Total</OrderInfoLabel>
-          <OrderInfoVal>
-            {formatCurrency(
-              orderData?.totalSummary?.grandTotal,
-              currencyOptions,
-              currencySymbol,
-            )}
-          </OrderInfoVal>
-        </OrderInfoRow> */}
         <OrderInfoRow>
           <OrderInfoLabel>Payment Method</OrderInfoLabel>
           <OrderInfoVal>
-            {capitalizeFirstLetter(orderData?.billing?.paymentMethod)}{' '}
+            {orderData?.billing?.paymentMethod === 'cashondelivery'?'Cash On Delivery': capitalizeFirstLetter(orderData?.billing?.paymentMethod)}{' '}
           </OrderInfoVal>
         </OrderInfoRow>
       </OrderViewCard>
@@ -152,7 +145,7 @@ const OrderView = ({navigation, orderDetail, id}) => {
             </OrderDetailRow>
           ))}
         <OrderAmountRow>
-          <OrderAmountLabel>Subtotal</OrderAmountLabel>
+          <OrderAmountLabel>Total MRP</OrderAmountLabel>
           <OrderAmountValue>
             {formatCurrency(
               orderData?.totalSummary?.mrpTotal,
@@ -172,6 +165,18 @@ const OrderView = ({navigation, orderDetail, id}) => {
             )}
           </OrderAmountValue>
         </OrderAmountRow>
+        {orderData?.totalSummary?.couponDiscountTotal > 0?
+        <OrderAmountRow>
+          <OrderAmountLabel> Discount on Coupon</OrderAmountLabel>
+          <OrderAmountValue>
+            -
+            {formatCurrency(
+              orderData?.totalSummary?.couponDiscountTotal,
+              currencyOptions,
+              currencySymbol,
+            )}
+          </OrderAmountValue>
+        </OrderAmountRow>:null}
         <OrderAmountRow>
           <OrderAmountLabel>Tax</OrderAmountLabel>
           <OrderAmountValue>

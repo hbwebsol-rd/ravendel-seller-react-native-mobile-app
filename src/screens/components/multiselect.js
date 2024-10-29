@@ -1,4 +1,10 @@
-import {Platform, Text, TouchableWithoutFeedback, View} from 'react-native';
+import {
+  Keyboard,
+  Platform,
+  Text,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import React, {useEffect, useMemo, useState, memo} from 'react';
 // import {isEmpty} from '../../utils';
 // import {
@@ -78,11 +84,30 @@ const CustomMultiSelect = ({
   }, [closedropdown]);
 
   useEffect(() => {
+    if (open) {
+      Keyboard.dismiss();
+    }
+  }, [open]);
+
+  useEffect(() => {
     if (inititalselect && !multiple) {
       setValue(inititalselect);
       onchange(fieldname, inititalselect);
     }
+    if (inititalselect && multiple) {
+      console.log(
+        'set field runnn',
+        inititalselect,
+        Array.isArray(inititalselect),
+      );
+      setValue(
+        Array.isArray(inititalselect)
+          ? inititalselect
+          : inititalselect.split(','),
+      );
+    }
   }, [inititalselect]);
+
   //   useEffect(() => {
   //     setValue(inititalselect);
   //   }, [reset]);
@@ -97,7 +122,7 @@ const CustomMultiSelect = ({
       style={
         Platform.OS === 'ios'
           ? [{zIndex: vzindex || 20, marginHorizontal: marHori || 0}]
-          : null
+          : [{marginHorizontal: marHori || 0}]
       }>
       <View>
         {!isEmpty(heading) && (

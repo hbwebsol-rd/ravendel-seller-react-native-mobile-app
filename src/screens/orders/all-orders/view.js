@@ -11,7 +11,7 @@ import {
 } from './styles';
 import CustomPicker from '../../components/custom-picker';
 import {GET_ORDER, GET_ORDERS} from '../../../queries/orderQueries';
-import {useQuery} from '@apollo/client';
+import {from, useQuery} from '@apollo/client';
 import moment from 'moment';
 import ThemeColor from '../../../utils/color';
 import {Input} from '@rneui/base';
@@ -54,6 +54,7 @@ const Orders = [
 ];
 
 const picker = [
+  {label: 'All', value: 'null'},
   {label: 'In Progress', value: 'inprogress'},
   {label: 'Shipped', value: 'shipped'},
   {label: 'Out for delivery', value: 'outfordelivery'},
@@ -61,6 +62,7 @@ const picker = [
 ];
 
 const paymentPicker = [
+  {label: 'All', value: 'null'},
   {label: 'Pending', value: 'pending'},
   {label: 'Failed', value: 'failed'},
   {label: 'Success', value: 'success'},
@@ -157,7 +159,7 @@ const AllOrderView = ({navigation}) => {
     return bgcolor;
   };
   const handleFilter = val => {
-    if (val) {
+    if (val !== 'null') {
       var filterOrder = data?.orders?.data.filter(
         order => order.shippingStatus === val,
       );
@@ -170,7 +172,9 @@ const AllOrderView = ({navigation}) => {
   };
 
   const handlePaymentFilter = val => {
-    if (val) {
+    if (val !== 'null') {
+      console.log(typeof val,'all selec')
+
       var filterOrder = data?.orders?.data.filter(
         order => order.paymentStatus === val,
       );
@@ -221,10 +225,10 @@ const AllOrderView = ({navigation}) => {
       );
     });
 
-    const shipping = !isEmpty(shippingstatus) ? true : '';
-    const payment = !isEmpty(paymentstatus) ? true : '';
-    const startD = startDate ? true : '';
-    const endD = endDate ? true : '';
+    const shipping = !isEmpty(shippingstatus) ? shippingstatus : '';
+    const payment = !isEmpty(paymentstatus) ? paymentstatus : '';
+    const startD = startDate ? startDate : '';
+    const endD = endDate ? endDate : '';
     setAppliedFilters([shipping, payment, startD, endD]);
     setAllOrders(filterdata);
     bottomSheetModalRef.current?.dismiss();
@@ -251,9 +255,8 @@ const AllOrderView = ({navigation}) => {
         }}
         style={{backgroundColor: ThemeColor.whiteColor}}
         key={i}>
-        <OrderDate>{moment(order.date).format('MMMM D, YYYY H:m')}</OrderDate>
+        <OrderDate>{moment(order.date).format('MMMM D, YYYY H:mm')}</OrderDate>
         <OrderID>
-          {/* <Text style={{fontWeight: 'bold'}}>Order Id:</Text>{' '} */}
           {order.orderNumber}
         </OrderID>
         <Text style={{color: '#000', marginTop: 8}}>
@@ -367,12 +370,13 @@ const AllOrderView = ({navigation}) => {
           onChange={handleSheetChanges}
           containerStyle={{backgroundColor: 'rgba(0, 0, 0, 0.5)'}}
           style={{flex: 1, elevation: 10, paddingHorizontal: 15}}>
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <ScrollView contentContainerStyle={{marginBottom:50,paddingBottom:50
+          }} showsVerticalScrollIndicator={false}>
             <View
               style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
-                alignItems: 'center',
+                alignItems: 'center'
               }}>
               <Text style={{fontSize: 16, color: ThemeColor.blackColor}}>
                 Filter
@@ -398,7 +402,7 @@ const AllOrderView = ({navigation}) => {
               pickerValChange={val => {
                 handleFilter(val);
               }}
-              placeholder="All"
+              // placeholder="All"
               label="Shipping Status"
               getNullval
               onDonePress={() => {}}
@@ -413,7 +417,7 @@ const AllOrderView = ({navigation}) => {
               pickerValChange={val => {
                 handlePaymentFilter(val);
               }}
-              placeholder="All"
+              // placeholder="All"
               label="Payment Status"
               getNullval
               onDonePress={() => {}}
@@ -465,10 +469,14 @@ const AllOrderView = ({navigation}) => {
               }}>
               <TouchableOpacity
                 onPress={() => {
-                  appliedFilters[0] ? null : setFillter('');
-                  appliedFilters[1] ? null : setPaymentFillter('');
-                  appliedFilters[2] ? null : setFrom('');
-                  appliedFilters[3] ? null : setTo('');
+                  appliedFilters[0] === shippingstatus ? null : setFillter(appliedFilters[0]);
+                  appliedFilters[1] === paymentstatus ? null : setPaymentFillter(appliedFilters[1]);
+                  appliedFilters[2] === startDate ? null : setFrom(appliedFilters[2]);
+                  appliedFilters[3] === endDate ? null : setTo(appliedFilters[3]);
+                  // appliedFilters[0] ? null : setFillter('');
+                  // appliedFilters[1] ? null : setPaymentFillter('');
+                  // appliedFilters[2] ? null : setFrom('');
+                  // appliedFilters[3] ? null : setTo('');
                   bottomSheetModalRef.current?.dismiss();
                 }}
                 style={styles.cancelBtn}>

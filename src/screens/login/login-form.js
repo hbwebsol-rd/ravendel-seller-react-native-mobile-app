@@ -19,7 +19,12 @@ import {useDispatch, useSelector} from 'react-redux';
 import {ALERT_ERROR} from '../../store/reducer/alert';
 import AppLoader from '../components/loader';
 import ThemeColor from '../../utils/color';
-import OneSignal from 'react-native-onesignal';
+import {OneSignal} from 'react-native-onesignal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SAVE_DEVICE_ID } from '../../queries/userQueries';
+import APclient from '../../client';
+import { GraphqlError, GraphqlSuccess } from '../components/garphqlMessages';
+import { useMutation } from '@apollo/client';
 
 const LoginForm = ({}) => {
   const dispatch = useDispatch();
@@ -28,76 +33,36 @@ const LoginForm = ({}) => {
   const {signin} = useContext(AuthContext);
   const {logo} = useSelector(state => state.dashboard.theme);
 
+  const [addDeviceInfo, {loading: addedLoading}] = useMutation(SAVE_DEVICE_ID, {
+    onError: error => {
+      GraphqlError(error);
+    },
+    onCompleted: data => {
+      console.log(data,' data data');
+    },
+  });
   const save_playerid = async player_id => {
-    var token = await getToken();
-    var myHeaders = new Headers();
-    myHeaders.append('Authorization', `Bearer ${token}`);
-    myHeaders.append('Content-Type', 'application/json');
-
-    var objects = {
-      deviceId: player_id,
-      deviceType: Platform.OS,
-      appVersion: versionCode,
-    };
-
-    var raw = JSON.stringify(objects);
-    console.log(JSON.stringify(objects));
-    var requestOptions = {
-      method: 'PUT',
-      headers: myHeaders,
-      body: raw,
-      redirect: 'follow',
-    };
-    fetch(`${BASE_URL}/api/user/updateDeviceId`, requestOptions)
-      .then(response => response.json())
-      .then(result => {
-        console.log(result, 'resss');
-        // storeData('playerid', player_id);
-      })
-      .catch(error => {
-        console.log(error, 'error');
-      });
+    addDeviceInfo({variables: {deviceInfo:  {
+      "device_id": player_id,
+      "device_type": Platform.OS.toUpperCase(),
+      "app_version": "1.0"
+    }}});
   };
 
   const setDeviceId = async () => {
-    const deviceState = await OneSignal.getDeviceState();
+    const deviceState = await OneSignal.User.pushSubscription.getIdAsync();
     // const pid = await getValue('playerid');
     console.log(deviceState, 'Plaery Id Get');
     // if (deviceState && deviceState.userId && isEmpty(pid)) {
-    save_playerid(deviceState.userId); //
+    save_playerid(deviceState); //
     // }
   };
 
   const InitOneSignal = async () => {
-    OneSignal.setLogLevel(6, 0);
-    OneSignal.setAppId(ONE_SIGNAL_APP_ID);
-    OneSignal.setRequiresUserPrivacyConsent(true);
-    OneSignal.provideUserConsent(true);
-    //END OneSignal Init Code
-    //Prompt for push on iOS
-    OneSignal.promptForPushNotificationsWithUserResponse(response => {
-      console.log('Prompt response:', response);
-    });
-    //Method for handling notifications received while app in foreground
-    OneSignal.setNotificationWillShowInForegroundHandler(
-      notificationReceivedEvent => {
-        console.log(
-          'OneSignal: notification will show in foreground:',
-          notificationReceivedEvent,
-        );
-        let notification = notificationReceivedEvent.getNotification();
-        console.log('notification: ', notification);
-        const data = notification.additionalData;
-        console.log('additionalData: ', data);
-        // Complete with null means don't show a notification.
-        notificationReceivedEvent.complete(notification);
-      },
-    );
-
-    //Method for handling notifications opened
-    OneSignal.setNotificationOpenedHandler(notification => {
-      console.log('OneSignal: notification opened:', notification);
-    });
+    OneSignal.initialize(ONE_SIGNAL_APP_ID)
+    OneSignal.setConsentRequired(true);
+    OneSignal.setConsentGiven(true);
+    
     setTimeout(() => {
       setDeviceId();
     }, 12000);
@@ -132,6 +97,8 @@ const LoginForm = ({}) => {
         console.log(response, 'rrrs');
         if (response.status === 200) {
           InitOneSignal();
+          AsyncStorage.setItem('token', response.data.token)
+          AsyncStorage.setItem('user',  JSON.stringify(response.data))
           SyncStorage.set('token', response.data.token);
           SyncStorage.set('user', JSON.stringify(response.data));
           signin({

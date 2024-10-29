@@ -144,9 +144,9 @@ const EditCouponsForm = ({navigation, singleCouponDetail}) => {
   }, [singleCouponDetail]);
   console.log(couponForm, ' coupon form');
   const UpdateCouponCodeForm = () => {
-    if (couponForm.code === '') {
+    if (isEmpty(couponForm.code)) {
       setValdiation({...validation, code: 'Code is required'});
-    } else if (couponForm.description === '') {
+    } else if (isEmpty(couponForm.description)) {
       setValdiation({
         ...validation,
         code: '',

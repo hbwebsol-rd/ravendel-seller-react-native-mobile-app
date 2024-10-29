@@ -18,6 +18,7 @@ import {
   convertData,
   URL,
   containsOnlyNumbers,
+  BASE_URL,
 } from '../../../utils/helper';
 import {GraphqlError, GraphqlSuccess} from '../../components/garphqlMessages';
 import {useDispatch} from 'react-redux';
@@ -174,7 +175,7 @@ const EditProductsScreen = ({route, navigation}) => {
           url: singleProduct.url,
           categoryId: singleProduct.categoryId?.map(cat => cat.id),
           categoryTree: singleProduct?.categoryTree || [],
-          brand: singleProduct.brand,
+          brand: singleProduct.brand.id,
           pricing: {
             price: singleProduct.pricing.price,
             sellprice: singleProduct.pricing.sellprice,
@@ -204,8 +205,18 @@ const EditProductsScreen = ({route, navigation}) => {
           variant: [],
           custom_field: [],
         };
+        console.log(newData, ' newdata');
         setProductDetail(newData);
-        setGroups(cvdata);
+        setGroups(
+          isEmpty(cvdata)
+            ? [
+                {
+                  name: '',
+                  attributes: [{key: '', value: '', keyId: '', valueId: ''}],
+                },
+              ]
+            : cvdata,
+        );
       }
     } else {
       setProductDetail({});
@@ -232,17 +243,20 @@ const EditProductsScreen = ({route, navigation}) => {
   };
 
   const onGalleryImagesRemove = img => {
-    if (img?._id) {
+    console.log(img, ' image');
+    if (img.includes(BASE_URL)) {
+      console.log('hyyy');
       let galleryImages = productDetail.gallery_image;
       let removed_image = productDetail.removed_image || [];
-      removed_image.push(img?._id);
+      removed_image.push(img.replace('https://zemjet.com/', ''));
       setProductDetail({
         ...productDetail,
-        gallery_image: galleryImages.filter(
-          galleryImg => galleryImg?._id !== img?._id,
-        ),
+        // gallery_image: galleryImages.filter(
+        //   galleryImg => galleryImg?._id !== img?._id,
+        // ),
         removed_image,
       });
+      setGallery(gallery.filter(galleryImg => galleryImg !== img));
       return;
     }
     setGallery(gallery.filter(galleryImg => galleryImg !== img));
@@ -331,8 +345,21 @@ const EditProductsScreen = ({route, navigation}) => {
       categoryId,
     } = productDetail;
     const result = [];
-    groups.forEach(group => {
+    emptyGroup = false;
+    groups.forEach((group, index) => {
+      if (isEmpty(group.name)) {
+        if (index != 0) {
+          emptyGroup = true;
+        }
+        return;
+      }
       group.attributes.forEach(attribute => {
+        if (isEmpty(attribute.keyId) || isEmpty(attribute.valueId)) {
+          if (index != 0) {
+            emptyGroup = true;
+          }
+          return;
+        }
         result.push({
           attributeId: attribute.keyId,
           key: attribute.key,
@@ -346,6 +373,12 @@ const EditProductsScreen = ({route, navigation}) => {
 
     if (isEmpty(name)) {
       dispatch({type: ALERT_ERROR, payload: 'Name is Required'});
+      return;
+    } else if (isEmpty(short_description)) {
+      dispatch({type: ALERT_ERROR, payload: 'Short description is Required'});
+      return;
+    } else if (emptyGroup) {
+      dispatch({type: ALERT_ERROR, payload: 'Specification is not selected'});
       return;
     } else if (isEmpty(categoryId)) {
       dispatch({type: ALERT_ERROR, payload: 'Category is Required'});
@@ -377,11 +410,11 @@ const EditProductsScreen = ({route, navigation}) => {
 
     var details = {
       _id: productDetail._id,
-      name: name,
+      name: name.trim(),
       url: url,
       categoryId: categoryId,
       categoryTree: filteredData,
-      brand: brand.id,
+      brand: brand,
       short_description: short_description,
       description: description,
       sku: sku,
@@ -392,9 +425,12 @@ const EditProductsScreen = ({route, navigation}) => {
       product_type: product_type,
       shipping: shipping,
       taxClass: tax_class,
-      meta: meta,
+      meta: {
+        title: meta.title.trim(),
+        description: meta.description.trim(),
+        keywords: meta.keywords.trim(),
+      },
       custom_field: custom_field,
-      specifications: result,
       // attribute: attribute,
       // variant: variant,
       // combinations: combinations,
@@ -402,6 +438,12 @@ const EditProductsScreen = ({route, navigation}) => {
       removed_image: productDetail?.removed_image || '',
       // update_feature_image: productDetail?.update_feature_image || '',
     };
+
+    if (!isEmpty(result)) {
+      details.specifications = result;
+    } else {
+      details.specifications = [];
+    }
 
     if (productDetail?.update_gallery_image) {
       details.update_gallery_image = productDetail?.update_gallery_image || '';
@@ -411,6 +453,7 @@ const EditProductsScreen = ({route, navigation}) => {
         [productDetail?.update_feature_image] || '';
     }
     console.log('UpdateProductSubmit details', details);
+    // return
     updateProduct({variables: details});
   };
 

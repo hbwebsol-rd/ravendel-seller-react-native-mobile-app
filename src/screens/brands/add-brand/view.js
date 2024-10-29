@@ -52,6 +52,7 @@ const AddBrandView = ({navigation}) => {
           name: brand.trim(),
         };
       });
+      newBrandArr = newBrandArr.filter(item=>!isEmpty(item.name))
       addBrands({variables: {brands: newBrandArr}});
     }
   };

@@ -1,9 +1,10 @@
 import axios from 'axios';
 import SyncStorage from 'sync-storage';
-export const URL = 'https://demo1-ravendel.hbwebsol.com/';
-export const BASE_URL = 'https://demo1-ravendel.hbwebsol.com/'; //https://zemjet.com/
-// export const BASE_URL = 'http://192.168.1.10:8000/';
-export const ONE_SIGNAL_APP_ID = 'd001d0d4-16bc-4cd9-812a-25ee0150fee2' //appid Zemjet 88a60462-5100-40ec-aeb2-4402a8f72e11
+export const APP_NAME = 'Zemjet';
+export const URL = 'https://zemjet.com/';
+export const BASE_URL = 'https://zemjet.com/'; //https://demo1-ravendel.hbwebsol.com/
+// export const BASE_URL = 'http://192.168.1.20:8000/';
+export const ONE_SIGNAL_APP_ID = '1ffa4ab3-8641-436f-bad1-365ad70bbc0e'//'88a60462-5100-40ec-aeb2-4402a8f72e11' //appid Ravendel d001d0d4-16bc-4cd9-812a-25ee0150fee2
 export const deleteProductVariation = id => {
   const token = SyncStorage.get('token') || '';
   return axios

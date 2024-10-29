@@ -38,12 +38,13 @@ const CustomPicker = ({
               }
               pickerValChange(itemValue);
             }}>
+              {
+                placeholder?
             <Picker.Item
               value={null}
               label={placeholder}
               color="rgba(0,0,0,0.5)"
-            />
-
+            />:null}
             {androidPickerData
               ? androidPickerData.map((data, index) => (
                   <Picker.Item

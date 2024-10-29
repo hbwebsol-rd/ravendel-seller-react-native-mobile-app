@@ -5,7 +5,7 @@ import AllOrderView from './view';
 const AllOrdersScreen = ({navigation}) => {
   return (
     <>
-      <AppHeader title="Order" navigation={navigation} />
+      <AppHeader title="Orders" navigation={navigation} />
       <AllOrderView navigation={navigation} />
     </>
   );

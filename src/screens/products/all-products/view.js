@@ -55,6 +55,7 @@ import {Input} from '@rneui/base';
 import BottomModal from '../../components/bottom-modal';
 import CustomPicker from '../../components/custom-picker';
 import {useSelector} from 'react-redux';
+import { filter } from 'lodash';
 
 const AllProductsView = ({navigation, RefecthAllProducts, stopReload}) => {
   const [allProducts, setAllProducts] = useState([]);
@@ -62,6 +63,7 @@ const AllProductsView = ({navigation, RefecthAllProducts, stopReload}) => {
   const [openModal, setOpenModal] = useState(false);
   const [productStatus, setProductStatus] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [appliedFilters, setAppliedFilters] = useState(['']);
   const {currencyOptions, currencySymbol} = useSelector(
     state => state.dashboard,
   );
@@ -74,6 +76,7 @@ const AllProductsView = ({navigation, RefecthAllProducts, stopReload}) => {
   );
 
   const picker = [
+    {label: 'All', value: 'null'},
     {label: 'Publish', value: 'publish'},
     {label: 'Draft', value: 'draft'},
   ];
@@ -111,13 +114,13 @@ const AllProductsView = ({navigation, RefecthAllProducts, stopReload}) => {
   };
 
   const handleFilter = val => {
-    if (val) {
+    if (val !== 'null') {
       setProductStatus(val);
     } else {
       setProductStatus('');
     }
   };
-
+console.log(productStatus)
   const applyFilter = () => {
     const filterdata = data?.products?.data?.filter(data => {
       const matchesSearch = inpvalue
@@ -131,6 +134,8 @@ const AllProductsView = ({navigation, RefecthAllProducts, stopReload}) => {
           data['status'].toLowerCase().includes(productStatus));
       return matchesSearch && matchesProductStatus;
     });
+    const prod = !isEmpty(productStatus) ? productStatus : '';
+    setAppliedFilters([prod]);
     setAllProducts(filterdata);
     setOpenModal(false);
   };
@@ -192,6 +197,7 @@ const AllProductsView = ({navigation, RefecthAllProducts, stopReload}) => {
           </Text>
           {product.pricing.sellprice < product.pricing.price ? (
             <ProductPriceWrapper>
+              {/* {console.log(product.pricing.sellprice,currencyOptions,currencySymbol,' pricing')} */}
               <ProductSellPrice>
                 {formatCurrency(
                   product.pricing.sellprice.toFixed(2),
@@ -297,8 +303,9 @@ const AllProductsView = ({navigation, RefecthAllProducts, stopReload}) => {
       ) : data && data.products && data?.products?.data?.length > 0 ? (
         <>
           {/* <ProductsWrapper> */}
-          <ProductsCardWrapper>
+          {/* <ProductsCardWrapper> */}
             <FlatList
+              contentContainerStyle={{marginHorizontal:10}}
               initialNumToRender={10}
               keyboardShouldPersistTaps="always"
               showsVerticalScrollIndicator={false}
@@ -320,7 +327,7 @@ const AllProductsView = ({navigation, RefecthAllProducts, stopReload}) => {
                 </View>
               )}
             />
-          </ProductsCardWrapper>
+          {/* </ProductsCardWrapper> */}
           {/* </ProductsWrapper> */}
         </>
       ) : null}
@@ -355,7 +362,7 @@ const AllProductsView = ({navigation, RefecthAllProducts, stopReload}) => {
           pickerValChange={val => {
             handleFilter(val);
           }}
-          placeholder="All"
+          // placeholder="All"
           label="Product Status"
           getNullval
           onDonePress={() => {}}
@@ -367,7 +374,9 @@ const AllProductsView = ({navigation, RefecthAllProducts, stopReload}) => {
             marginTop: 15,
           }}>
           <TouchableOpacity
-            onPress={() => { setProductStatus('');setOpenModal(false)}}
+            onPress={() => { 
+              appliedFilters[0] === productStatus ? null : setProductStatus(appliedFilters[0]);
+              setOpenModal(false)}}
             style={styles.cancelBtn}>
             <Text style={{color: '#fff', fontSize: 16}}>Cancel</Text>
           </TouchableOpacity>

@@ -17,7 +17,6 @@ const Specification = ({
   removeItemFromGroup,
   removeValueAtIndex,
 }) => {
-  console.log(removeItemFromGroup, ' aaa');
   const handleGroupNameChange = (text, index) => {
     const updatedGroups = [...groups];
     updatedGroups[index].name = text;
@@ -123,7 +122,9 @@ const Specification = ({
                         groups[groupIndex]?.attributes[attributeIndex]?.key,
                       )
                     }>
-                    <Picker.Item label="Select Value" value="" />
+                    {groups[groupIndex]?.attributes[attributeIndex]?.key ? (
+                      <Picker.Item label="Select Value" value="" />
+                    ) : null}
 
                     {groups[groupIndex]?.attributes[attributeIndex]?.key ? (
                       data

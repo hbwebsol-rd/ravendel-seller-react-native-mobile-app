@@ -55,12 +55,12 @@ const AllCouponsView = ({navigation}) => {
         const matchesSearch = inpvalue
           ? String(data.code).toLowerCase().includes(inpvalue.toLowerCase())
           : true;
-        const matchesdiscount = inpvalue
-          ? String(data.discountValue)
-              .toLowerCase()
-              .includes(inpvalue.toLowerCase())
-          : true;
-        return matchesSearch && matchesdiscount;
+        // const matchesdiscount = inpvalue
+        //   ? String(data.discountValue)
+        //       .toLowerCase()
+        //       .includes(inpvalue.toLowerCase())
+        //   : true;
+        return matchesSearch ;
       });
     setAllCoupon(filterdata);
   };
@@ -192,7 +192,7 @@ const AllCouponsView = ({navigation}) => {
             <Icon name="filter" color="gray" size={30} />
           </TouchableOpacity> */}
       </View>
-      <CouponCardWrapper>
+      {/* <CouponCardWrapper> */}
         {deleteLoading ? <AppLoader /> : null}
         <>
           <FlatList
@@ -218,7 +218,7 @@ const AllCouponsView = ({navigation}) => {
             )}
           />
         </>
-      </CouponCardWrapper>
+      {/* </CouponCardWrapper> */}
     </View>
   );
 };

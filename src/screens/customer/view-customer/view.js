@@ -10,6 +10,7 @@ import {
   AddressRow,
   AddressTitle,
   DefaultAddress,
+  CustomerEmailValue,
 } from './styles';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import AntIcon from 'react-native-vector-icons/AntDesign';
@@ -24,7 +25,6 @@ const SingleCustomerView = ({singleCustomerDetail, navigation}) => {
       setSingleCustomer(singleCustomerDetail);
     }
   }, [singleCustomerDetail]);
-  console.log(singleCustomerDetail);
   return (
     <ViewCustomerWrapper>
       {!isEmpty(singleCustomer) ? (
@@ -41,7 +41,7 @@ const SingleCustomerView = ({singleCustomerDetail, navigation}) => {
           </CustomerProfileRow>
           <CustomerProfileRow>
             <CustomerProfileLable>Email :</CustomerProfileLable>
-            <CustomerProfileValue>{singleCustomer.email}</CustomerProfileValue>
+            <CustomerEmailValue>{singleCustomer.email}</CustomerEmailValue>
           </CustomerProfileRow>
           {/* <CustomerProfileRow>
             <CustomerProfileLable>Company</CustomerProfileLable>
@@ -98,8 +98,11 @@ const SingleCustomerView = ({singleCustomerDetail, navigation}) => {
                     </AddressLabel>
                     <AddressValue>
                       {address.addressLine1 +
-                        ' ' +
-                        address.addressLine2 +
+                        `${
+                          !isEmpty(address.addressLine2)
+                            ? `, ${address.addressLine2}`
+                            : ''
+                        }` +
                         ', ' +
                         address.city +
                         ', ' +

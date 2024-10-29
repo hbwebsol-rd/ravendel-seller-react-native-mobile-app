@@ -119,6 +119,15 @@ const GET_APP_SETTING = gql`
   }
 `;
 
+export const SAVE_DEVICE_ID = gql`
+ mutation UpdateUserDeviceInfo($deviceInfo: DEVICE_INFO_INPUT) {
+  updateUserDeviceInfo(device_info: $deviceInfo) {
+    message
+    success
+  }
+}
+`;
+
 export {
   GET_USERS,
   GET_USER,
