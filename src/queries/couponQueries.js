@@ -118,6 +118,7 @@ const UPDATE_COUPON = gql`
     $category: Boolean
     $includeCategories: customArray
     $excludeCategories: customArray
+    $categoryTree: customArray
   ) {
     updateCoupon(
       id: $id
@@ -135,6 +136,7 @@ const UPDATE_COUPON = gql`
       category: $category
       includeCategories: $includeCategories
       excludeCategories: $excludeCategories
+      categoryTree: $categoryTree
     ) {
       message
       success

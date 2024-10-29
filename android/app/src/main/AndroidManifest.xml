@@ -33,6 +33,12 @@
             <data android:scheme="https" android:host="ravendelseller" />
             <data android:scheme="ravendelseller" android:host="" />
          </intent-filter>
+         <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="ravendelseller" android:host="ViewOrder" />
+          </intent-filter>
       </activity>
     </application>
 </manifest>

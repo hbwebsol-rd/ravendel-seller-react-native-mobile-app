@@ -1,5 +1,9 @@
 import React, {useState, useEffect} from 'react';
-import {isEmpty, BASE_URL, SPECIAL_CHARACTER_REGEX} from '../../../utils/helper';
+import {
+  isEmpty,
+  BASE_URL,
+  SPECIAL_CHARACTER_REGEX,
+} from '../../../utils/helper';
 import AppLoader from '../../components/loader';
 import {Input} from '@rneui/themed';
 import URLComponents from '../../components/urlComponents';
@@ -39,12 +43,18 @@ const EditCategoryView = ({navigation, singleCategoryDetail}) => {
       },
       onCompleted: data => {
         // GraphqlSuccess('Updated successfully');
-        if(data.updateProductCategory.success){
-        dispatch({type: ALERT_SUCCESS, payload: data.updateProductCategory.message});
-        navigation.goBack();
-        setCategoryForm({});
-        }else{
-          dispatch({type: ALERT_ERROR, payload: data.updateProductCategory.message});
+        if (data.updateProductCategory.success) {
+          dispatch({
+            type: ALERT_SUCCESS,
+            payload: data.updateProductCategory.message,
+          });
+          navigation.goBack();
+          setCategoryForm({});
+        } else {
+          dispatch({
+            type: ALERT_ERROR,
+            payload: data.updateProductCategory.message,
+          });
         }
       },
     },
@@ -67,8 +77,16 @@ const EditCategoryView = ({navigation, singleCategoryDetail}) => {
       const single = {
         description: singleCategoryDetail.description,
         id: singleCategoryDetail.id,
-        image: {uri: singleCategoryDetail.image?BASE_URL + singleCategoryDetail.image:null},
-        thumbnail_image: {uri: singleCategoryDetail.thumbnail_image?BASE_URL + singleCategoryDetail.thumbnail_image:null},
+        image: {
+          uri: singleCategoryDetail.image
+            ? BASE_URL + singleCategoryDetail.image
+            : null,
+        },
+        thumbnail_image: {
+          uri: singleCategoryDetail.thumbnail_image
+            ? BASE_URL + singleCategoryDetail.thumbnail_image
+            : null,
+        },
         meta: {
           description: singleCategoryDetail?.meta?.description,
           keywords: singleCategoryDetail?.meta?.keywords,
@@ -85,9 +103,9 @@ const EditCategoryView = ({navigation, singleCategoryDetail}) => {
   }, [singleCategoryDetail]);
 
   const UpdateCategoryForm = () => {
-    if (categoryForm.name === '') {
+    if (isEmpty(categoryForm.name)) {
       setValdiation({...validation, name: 'Name is required'});
-    }  else if (categoryForm.description === '') {
+    } else if (isEmpty(categoryForm.description)) {
       setValdiation({
         ...validation,
         name: '',
@@ -117,10 +135,7 @@ const EditCategoryView = ({navigation, singleCategoryDetail}) => {
           keywords: categoryForm.meta.keywords,
         },
       };
-      console.log(
-        JSON.stringify(categoryObject),
-        ' editcategory payload',
-      );
+      console.log(JSON.stringify(categoryObject), ' editcategory payload');
       updateCategory({variables: categoryObject});
     }
   };
@@ -168,7 +183,7 @@ const EditCategoryView = ({navigation, singleCategoryDetail}) => {
                 }
               />
               <Text style={{fontSize: 15, marginLeft: 8, fontWeight: '600'}}>
-              Parent Category
+                Parent Category
               </Text>
               {console.log(categoryForm.parentId, ' catt')}
               <Multiselect
@@ -239,7 +254,8 @@ const EditCategoryView = ({navigation, singleCategoryDetail}) => {
                   />
                 </View>
               )}
-              {isEmpty(categoryForm.upload_thumbnail_image) && categoryForm.thumbnail_image.uri ? (
+              {isEmpty(categoryForm.upload_thumbnail_image) &&
+              categoryForm.thumbnail_image.uri ? (
                 <View>
                   <Text
                     style={{fontSize: 15, marginLeft: 8, fontWeight: '600'}}>

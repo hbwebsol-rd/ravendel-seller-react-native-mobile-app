@@ -23,8 +23,8 @@ import MulipleSelect from '../../components/multiple-selection';
 import {GraphqlError, GraphqlSuccess} from '../../components/garphqlMessages';
 import {getCheckedIds} from '../../../utils/helper';
 import EditCategoriesComponent from '../../components/edit-category';
-import { ALERT_ERROR, ALERT_SUCCESS } from '../../../store/reducer/alert';
-import { useDispatch } from 'react-redux';
+import {ALERT_ERROR, ALERT_SUCCESS} from '../../../store/reducer/alert';
+import {useDispatch} from 'react-redux';
 
 const discountType = [
   {label: 'Fixed Amount Discount', value: 'amount-discount'},
@@ -78,13 +78,13 @@ const AddCouponsForm = ({navigation}) => {
       GraphqlError(error);
     },
     onCompleted: data => {
-      console.log(data,' addcoupon submit')
+      console.log(data, ' addcoupon submit');
       if (data.addCoupon.success) {
-      // GraphqlSuccess('Added successfully');
-      dispatch({type: ALERT_SUCCESS, payload: data.addCoupon.message});
-      setCouponForm(stateObj);
-      navigation.goBack();
-      }else{
+        // GraphqlSuccess('Added successfully');
+        dispatch({type: ALERT_SUCCESS, payload: data.addCoupon.message});
+        setCouponForm(stateObj);
+        navigation.goBack();
+      } else {
         dispatch({type: ALERT_ERROR, payload: data.addCoupon.message});
       }
     },
@@ -143,7 +143,7 @@ const AddCouponsForm = ({navigation}) => {
       const filteredData = filterTreeData(couponForm.categoryTree);
 
       const payload = {
-        code: couponForm.code,
+        code: couponForm.code.trim(),
         description: couponForm.description,
         discountType: couponForm.discountType,
         discountValue: Number(couponForm.discountValue),
@@ -226,7 +226,6 @@ const AddCouponsForm = ({navigation}) => {
             onConfirm={handleConfirm}
             onCancel={hideDatePicker}
             minimumDate={new Date()}
-
           />
           <CustomPicker
             iosDropdown

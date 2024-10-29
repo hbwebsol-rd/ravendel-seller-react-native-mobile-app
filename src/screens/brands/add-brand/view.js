@@ -6,11 +6,12 @@ import {useMutation} from '@apollo/client';
 import {ADD_BRAND} from '../../../queries/brandsQueries';
 import FormActionsComponent from '../../components/formAction';
 import {GraphqlError, GraphqlSuccess} from '../../components/garphqlMessages';
-import { ALERT_ERROR } from '../../../store/reducer/alert';
-import { useDispatch } from 'react-redux';
+import {ALERT_ERROR} from '../../../store/reducer/alert';
+import {useDispatch} from 'react-redux';
+import {isEmpty, SPECIAL_CHARACTER_REGEX} from '../../../utils/helper';
 
 const AddBrandView = ({navigation}) => {
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const [brands, setBrands] = useState('');
   const [validation, setValdiation] = useState({
     name: '',
@@ -21,20 +22,25 @@ const AddBrandView = ({navigation}) => {
       GraphqlError(error);
     },
     onCompleted: data => {
-      console.log(data)
-      if(data.addBrand.success){
-      GraphqlSuccess('Added successfully');
-      setBrands('');
-      navigation.goBack();
-      }else{
-        dispatch({type:ALERT_ERROR,payload:data.addBrand.message})
+      console.log(data);
+      if (data.addBrand.success) {
+        GraphqlSuccess('Added successfully');
+        setBrands('');
+        navigation.goBack();
+      } else {
+        dispatch({type: ALERT_ERROR, payload: data.addBrand.message});
       }
     },
   });
 
   const AddBrandSubmit = () => {
-    if (brands === '') {
+    if (isEmpty(brands)) {
       setValdiation({...validation, name: 'Brand Name is required'});
+    } else if (!SPECIAL_CHARACTER_REGEX.test(brands)) {
+      setValdiation({
+        ...validation,
+        name: 'brands should contain only letters and numbers',
+      });
     } else {
       setValdiation({
         ...validation,
@@ -43,7 +49,7 @@ const AddBrandView = ({navigation}) => {
       var string = brands;
       var newBrandArr = string.split('\n').map(brand => {
         return {
-          name: brand,
+          name: brand.trim(),
         };
       });
       addBrands({variables: {brands: newBrandArr}});

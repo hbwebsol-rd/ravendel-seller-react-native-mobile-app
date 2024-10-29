@@ -56,7 +56,10 @@ const AddCategoryView = ({navigation}) => {
       console.log(data);
       if (data.addProductCategory.success) {
         // GraphqlSuccess('Added successfully');
-        dispatch({type: ALERT_SUCCESS, payload: data.addProductCategory.message});
+        dispatch({
+          type: ALERT_SUCCESS,
+          payload: data.addProductCategory.message,
+        });
         setCategoryForm(categoryObject);
         navigation.goBack();
       } else {
@@ -66,9 +69,9 @@ const AddCategoryView = ({navigation}) => {
   });
 
   const AddCategoryForm = () => {
-    if (categoryForm.name === '') {
+    if (isEmpty(categoryForm.name)) {
       setValdiation({...validation, name: 'Name is required'});
-    } else if (categoryForm.description === '') {
+    } else if (isEmpty(categoryForm.description)) {
       setValdiation({
         ...validation,
         name: '',

@@ -93,6 +93,7 @@ const EditCouponsForm = ({navigation, singleCouponDetail}) => {
       return acc;
     }, []);
   };
+
   useEffect(() => {
     if (singleCouponDetail) {
       console.log(singleCouponDetail, ' coupon details');
@@ -116,6 +117,7 @@ const EditCouponsForm = ({navigation, singleCouponDetail}) => {
         updated,
         categoryTree,
       } = singleCouponDetail;
+
       const newCoupon = {
         __typename: 'Coupon',
         category: true,
@@ -140,7 +142,7 @@ const EditCouponsForm = ({navigation, singleCouponDetail}) => {
       setCouponForm(newCoupon);
     }
   }, [singleCouponDetail]);
-  console.log(couponForm, ' cpf');
+  console.log(couponForm, ' coupon form');
   const UpdateCouponCodeForm = () => {
     if (couponForm.code === '') {
       setValdiation({...validation, code: 'Code is required'});
@@ -150,7 +152,10 @@ const EditCouponsForm = ({navigation, singleCouponDetail}) => {
         code: '',
         description: 'description is required',
       });
-    } else if (couponForm.discountValue === '' || couponForm.discountValue == 0) {
+    } else if (
+      couponForm.discountValue === '' ||
+      couponForm.discountValue == 0
+    ) {
       setValdiation({
         ...validation,
         code: '',
@@ -167,10 +172,9 @@ const EditCouponsForm = ({navigation, singleCouponDetail}) => {
 
       const filteredData = filterTreeData(couponForm.categoryTree);
 
-      console.log(couponForm, ' popo');
       var updateObejct = {
         id: couponForm.id,
-        code: couponForm.code,
+        code: couponForm.code.trim(),
         description: couponForm.description,
         discountType: couponForm.discountType,
         discountValue: Number(couponForm.discountValue),
@@ -186,6 +190,7 @@ const EditCouponsForm = ({navigation, singleCouponDetail}) => {
         categoryTree: filteredData,
         // exclude_categories: couponForm.exclude_categories,
       };
+      console.log(updateObejct, ' Edit Coupon Data');
       updateCoupon({variables: updateObejct});
     }
   };

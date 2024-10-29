@@ -24,7 +24,7 @@ const SingleCustomerView = ({singleCustomerDetail, navigation}) => {
       setSingleCustomer(singleCustomerDetail);
     }
   }, [singleCustomerDetail]);
-  console.log(singleCustomerDetail)
+  console.log(singleCustomerDetail);
   return (
     <ViewCustomerWrapper>
       {!isEmpty(singleCustomer) ? (
@@ -41,9 +41,7 @@ const SingleCustomerView = ({singleCustomerDetail, navigation}) => {
           </CustomerProfileRow>
           <CustomerProfileRow>
             <CustomerProfileLable>Email :</CustomerProfileLable>
-            <CustomerProfileValue>
-              {singleCustomer.email}
-            </CustomerProfileValue>
+            <CustomerProfileValue>{singleCustomer.email}</CustomerProfileValue>
           </CustomerProfileRow>
           {/* <CustomerProfileRow>
             <CustomerProfileLable>Company</CustomerProfileLable>
@@ -64,16 +62,13 @@ const SingleCustomerView = ({singleCustomerDetail, navigation}) => {
                   ) : null}
                   <AddressRow>
                     <AddressLabel>
-                      {
-                        address.addressType==='Home'?
-                        <Icon name="home" size={16} color="#505050" />:<Icon  name="building" size={16} color="#505050" />
-                      }
-                      
+                      {address.addressType === 'Home' ? (
+                        <Icon name="home" size={16} color="#505050" />
+                      ) : (
+                        <Icon name="building" size={16} color="#505050" />
+                      )}
                     </AddressLabel>
-                    <AddressValue>
-                      {' '}
-                      {address.addressType}
-                    </AddressValue>
+                    <AddressValue> {address.addressType}</AddressValue>
                   </AddressRow>
                   <AddressRow>
                     <AddressLabel>
@@ -103,7 +98,7 @@ const SingleCustomerView = ({singleCustomerDetail, navigation}) => {
                     </AddressLabel>
                     <AddressValue>
                       {address.addressLine1 +
-                        ', ' +
+                        ' ' +
                         address.addressLine2 +
                         ', ' +
                         address.city +

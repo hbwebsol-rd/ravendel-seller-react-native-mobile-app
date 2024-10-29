@@ -21,6 +21,7 @@ import {
 } from '../../queries/groupProductQueries';
 import {capitalizeFirstLetter, wait} from '../../utils/helper';
 import {Input} from '@rneui/base';
+import {GraphqlSuccess} from '../components/garphqlMessages';
 
 const AllGroupScreen = ({navigation}) => {
   const {loading, error, data, refetch} = useQuery(GET_GROUP_PRODUCTS);
@@ -36,6 +37,7 @@ const AllGroupScreen = ({navigation}) => {
     },
     onCompleted: data => {
       // Handle completion as needed
+      GraphqlSuccess('Deleted successfully');
       console.log('Group deleted successfully:', data);
     },
   });
@@ -112,13 +114,12 @@ const AllGroupScreen = ({navigation}) => {
                     },
                     {
                       text: 'OK',
-                      onPress: () =>
-                      {
-                        setInpvalue('')
+                      onPress: () => {
+                        setInpvalue('');
                         deleteGroupFun({
                           variables: {deleteGroupId: grp.id},
-                        })
-                      }
+                        });
+                      },
                     },
                   ],
                   {cancelable: false},

@@ -60,14 +60,14 @@ const AddGroupScreen = ({navigation, route}) => {
         // dispatch({type: ALERT_ERROR, payload: data.updateGroup.message});
       },
       onCompleted: data => {
-        console.log(data, ' da[[][]aa');
+        console.log(data, ' Add Group');
         if (data.updateGroup.success) {
           GraphqlSuccess('Updated successfully');
-          setGroupProduct({
-            title: '',
-            attributes: [],
-            variant: [],
-          });
+          // setGroupProduct({
+          //   title: '',
+          //   attributes: [],
+          //   variant: [],
+          // });
           navigation.goBack();
         } else {
           dispatch({type: ALERT_ERROR, payload: data.updateGroup.message});
@@ -125,14 +125,14 @@ const AddGroupScreen = ({navigation, route}) => {
   const addProduct = () => {
     if (isEmpty(groupProduct.title)) {
       setValdiation({...validation, title: 'Name is required'});
-      return
-    }else if (!SPECIAL_CHARACTER_REGEX.test(groupProduct.title)) {
+      return;
+    } else if (!SPECIAL_CHARACTER_REGEX.test(groupProduct.title)) {
       setValdiation({
         ...validation,
         title: 'Name should contain only letters and numbers',
       });
-      return
-    } 
+      return;
+    }
     // e.preventDefault();
     // groupProduct.taxClass = taxClass;
     // groupProduct.shipping.shippingClass = shippingClass;
@@ -190,7 +190,7 @@ const AddGroupScreen = ({navigation, route}) => {
         }
       }
       const obj = {
-        title: groupProduct?.title,
+        title: groupProduct?.title.trim(),
         attributes:
           id && attributes?.length <= 0 ? groupProduct?.attributes : attributes,
         variations:
@@ -268,9 +268,9 @@ const AddGroupScreen = ({navigation, route}) => {
     }
   }, [groupProductState, id]);
 
-  if (updateLoading || addedLoading) {
-    return <AppLoader />;
-  }
+  // if (updateLoading || addedLoading) {
+  //   return <AppLoader />;
+  // }
   return (
     <ScrollView
       contentContainerStyle={{
@@ -278,10 +278,12 @@ const AddGroupScreen = ({navigation, route}) => {
         backgroundColor: ThemeColor.whiteColor,
         flexGrow: 1,
       }}>
+      {updateLoading || addedLoading ? <AppLoader /> : null}
       <View style={{...styles.container}}>
         <AppHeader
           title={id ? 'Edit Group Product' : 'Add Group Product'}
           navigation={navigation}
+          back
         />
         <FormActionsComponent
           onCancel={() => navigation.goBack()}
@@ -297,31 +299,31 @@ const AddGroupScreen = ({navigation, route}) => {
           errorMessage={validation.title}
         />
       </View>
-      {
-        Platform.OS==='ios'?
-<GroupAttributesIOS
-        product={groupProduct}
-        productStateChange={({...groupProduct}) =>
-          setGroupProduct({
-            ...groupProduct,
-          })
-        }
-        onCombinationUpdate={combination => {
-          setCombination(combination);
-        }}
-      />
-      :
-      <GroupAttributes
-        product={groupProduct}
-        productStateChange={({...groupProduct}) =>
-          setGroupProduct({
-            ...groupProduct,
-          })
-        }
-        onCombinationUpdate={combination => {
-          setCombination(combination);
-        }}
-      />}
+      {Platform.OS === 'ios' ? (
+        <GroupAttributesIOS
+          product={groupProduct}
+          productStateChange={({...groupProduct}) =>
+            setGroupProduct({
+              ...groupProduct,
+            })
+          }
+          onCombinationUpdate={combination => {
+            setCombination(combination);
+          }}
+        />
+      ) : (
+        <GroupAttributes
+          product={groupProduct}
+          productStateChange={({...groupProduct}) =>
+            setGroupProduct({
+              ...groupProduct,
+            })
+          }
+          onCombinationUpdate={combination => {
+            setCombination(combination);
+          }}
+        />
+      )}
     </ScrollView>
   );
 };

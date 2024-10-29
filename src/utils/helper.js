@@ -1,9 +1,9 @@
 import axios from 'axios';
 import SyncStorage from 'sync-storage';
 export const URL = 'https://demo1-ravendel.hbwebsol.com/';
-// export const BASE_URL = 'https://demo1-ravendel.hbwebsol.com/';
-export const BASE_URL = 'http://192.168.1.30:8000/';
-
+export const BASE_URL = 'https://demo1-ravendel.hbwebsol.com/'; //https://zemjet.com/
+// export const BASE_URL = 'http://192.168.1.10:8000/';
+export const ONE_SIGNAL_APP_ID = 'd001d0d4-16bc-4cd9-812a-25ee0150fee2' //appid Zemjet 88a60462-5100-40ec-aeb2-4402a8f72e11
 export const deleteProductVariation = id => {
   const token = SyncStorage.get('token') || '';
   return axios
@@ -121,32 +121,46 @@ export const containsOnlyNumbers = input => {
 };
 
 export const convertData = data => {
-  const result = [];
+  if (!isEmpty(data)) {
+    const result = [];
 
-  // Create an object to store groups and their corresponding attributes
-  const groups = {};
+    // Create an object to store groups and their corresponding attributes
+    const groups = {};
 
-  // Iterate through the data
-  data.forEach(item => {
-    // Check if the group already exists in the groups object
-    if (!groups[item.group]) {
-      // If the group doesn't exist, create a new entry in the groups object
-      groups[item.group] = {
-        name: item.group,
-        attributes: [{key: item.key, value: item.value}],
-      };
-    } else {
-      // If the group exists, push the attribute to the existing group
-      groups[item.group].attributes.push({key: item.key, value: item.value});
+    // Iterate through the data
+    data.forEach(item => {
+      // Check if the group already exists in the groups object
+      if (!groups[item.group]) {
+        // If the group doesn't exist, create a new entry in the groups object
+        groups[item.group] = {
+          name: item.group,
+          attributes: [
+            {
+              key: item.key,
+              value: item.value,
+              keyId: item?.attributeId,
+              valueId: item?.attributeValueId,
+            },
+          ],
+        };
+      } else {
+        // If the group exists, push the attribute to the existing group
+        groups[item.group].attributes.push({
+          key: item.key,
+          value: item.value,
+          keyId: item?.attributeId,
+          valueId: item?.attributeValueId,
+        });
+      }
+    });
+
+    // Convert the groups object to an array of values
+    for (const groupName in groups) {
+      result.push(groups[groupName]);
     }
-  });
 
-  // Convert the groups object to an array of values
-  for (const groupName in groups) {
-    result.push(groups[groupName]);
+    return result;
   }
-
-  return result;
 };
 
 export const getDiscount = (price, salePrice) => {
@@ -211,3 +225,11 @@ export const hasCheckedChild = cat => {
   }
   return false;
 };
+
+export function capitalizeFirstLetter(string) {
+  if (string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  }
+}
+
+export const SPECIAL_CHARACTER_REGEX=/^[a-zA-Z0-9\s]*$/

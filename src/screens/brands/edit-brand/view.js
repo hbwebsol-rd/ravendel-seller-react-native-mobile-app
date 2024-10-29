@@ -1,5 +1,9 @@
 import React, {useState, useEffect} from 'react';
-import {isEmpty, BASE_URL} from '../../../utils/helper';
+import {
+  isEmpty,
+  BASE_URL,
+  SPECIAL_CHARACTER_REGEX,
+} from '../../../utils/helper';
 import AppLoader from '../../components/loader';
 import {Input} from '@rneui/themed';
 import URLComponents from '../../components/urlComponents';
@@ -16,9 +20,13 @@ const EditBrandView = ({navigation, singleBrandDetail}) => {
   const dispatch = useDispatch();
   const [brandFrom, setBrandForm] = useState({});
   const [featureImage, setFeatureImage] = useState('');
+  const [validation, setValdiation] = useState({
+    name: '',
+  });
+
   const [updateBrand, {loading: addedLoading}] = useMutation(UPDATE_BRAND, {
     onError: error => {
-      console.log(error)
+      console.log(error);
       dispatch({type: ALERT_ERROR, payload: 'Something went wrong'});
     },
     onCompleted: data => {
@@ -39,7 +47,11 @@ const EditBrandView = ({navigation, singleBrandDetail}) => {
       const data = {
         url: singleBrandDetail.url,
         name: singleBrandDetail.name,
-        brand_logo: {uri: singleBrandDetail.brand_logo?BASE_URL + singleBrandDetail.brand_logo:null},
+        brand_logo: {
+          uri: singleBrandDetail.brand_logo
+            ? BASE_URL + singleBrandDetail.brand_logo
+            : null,
+        },
         meta: {
           description: singleBrandDetail.meta.description,
           keywords: singleBrandDetail.meta.keywords,
@@ -52,21 +64,30 @@ const EditBrandView = ({navigation, singleBrandDetail}) => {
   }, [singleBrandDetail]);
 
   const UpdateBrandsForm = () => {
-    var updateBrandObject = {
-      id: singleBrandDetail.id,
-      name: brandFrom.name,
-      url: brandFrom.url,
-      updated_brand_logo: brandFrom.update_brand_logo
-        ? [brandFrom.update_brand_logo]
-        : '',
-      meta: {
-        title: brandFrom.meta.title,
-        description: brandFrom.meta.description,
-        keywords: brandFrom.meta.keywords,
-      },
-    };
-    console.log('update brand payload: ', updateBrandObject);
-    updateBrand({variables: updateBrandObject});
+    if (isEmpty(brandFrom.name)) {
+      setValdiation({...validation, name: 'Brand Name is required'});
+    } else if (!SPECIAL_CHARACTER_REGEX.test(brandFrom.name)) {
+      setValdiation({
+        ...validation,
+        name: 'brands should contain only letters and numbers',
+      });
+    } else {
+      var updateBrandObject = {
+        id: singleBrandDetail.id,
+        name: brandFrom.name.trim(),
+        url: brandFrom.url,
+        updated_brand_logo: brandFrom.updated_brand_logo
+          ? [brandFrom.updated_brand_logo]
+          : '',
+        meta: {
+          title: brandFrom.meta.title.trim(),
+          description: brandFrom.meta.description.trim(),
+          keywords: brandFrom.meta.keywords.trim(),
+        },
+      };
+      console.log('update brand payload: ', updateBrandObject);
+      updateBrand({variables: updateBrandObject});
+    }
   };
 
   return (
@@ -99,6 +120,7 @@ const EditBrandView = ({navigation, singleBrandDetail}) => {
                     });
                   }
                 }}
+                errorMessage={validation.name}
               />
               <URLComponents
                 url={brandFrom.url}
@@ -110,18 +132,19 @@ const EditBrandView = ({navigation, singleBrandDetail}) => {
                   setBrandForm({...brandFrom, ['url']: value})
                 }
               />
-              {brandFrom.brand_logo.uri ? (
+              {isEmpty(brandFrom.updated_brand_logo) &&
+              brandFrom.brand_logo.uri ? (
                 <FeaturedImageComponents
                   image={brandFrom.brand_logo}
                   inputChange={img => {
                     setBrandForm({...brandFrom, ['updated_brand_logo']: img});
+                    setFeatureImage(img);
                   }}
                   removeImage={() =>
                     setBrandForm({
                       ...brandFrom,
                       ['updated_brand_logo']: '',
                       ['brand_logo']: '',
-                      
                     })
                   }
                 />

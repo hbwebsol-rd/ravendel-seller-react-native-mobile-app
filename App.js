@@ -85,10 +85,10 @@ const App = () => {
   const linking = {
     prefixes: ['ravendelseller://', 'https://ravendelseller'],
     config: {
-      initialRouteName: 'Home',
+      initialRouteName: 'Dashboard',
       screens: {
-        Home: {
-          path: 'Home',
+        Dashboard: {
+          path: 'Dashboard',
         },
         ViewOrder: {
           path: 'ViewOrder/:id',

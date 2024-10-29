@@ -78,6 +78,7 @@ const AllOrderView = ({navigation}) => {
   const [refreshing, setRefreshing] = useState(false);
   const [startDate, setFrom] = useState('');
   const [endDate, setTo] = useState('');
+  const [appliedFilters, setAppliedFilters] = useState(['', '', '', '']);
 
   const bottomSheetModalRef = useRef(null);
 
@@ -186,11 +187,6 @@ const AllOrderView = ({navigation}) => {
       // console.log(data1, ' d1');
       const matchesSearch = inpvalue
         ? Object.values(data1).some(val => {
-            // console.log(
-            //   '-------',
-            //   val,
-            //   String(val).toLowerCase().includes(inpvalue.toLowerCase()),
-            // );
             return (
               String(val).toLowerCase().includes(inpvalue.toLowerCase()) ||
               String(val?.firstname + ' ' + val?.lastname)
@@ -224,6 +220,12 @@ const AllOrderView = ({navigation}) => {
         matchesDateRange
       );
     });
+
+    const shipping = !isEmpty(shippingstatus) ? true : '';
+    const payment = !isEmpty(paymentstatus) ? true : '';
+    const startD = startDate ? true : '';
+    const endD = endDate ? true : '';
+    setAppliedFilters([shipping, payment, startD, endD]);
     setAllOrders(filterdata);
     bottomSheetModalRef.current?.dismiss();
   };
@@ -245,7 +247,7 @@ const AllOrderView = ({navigation}) => {
     <>
       <OrderCard
         onPress={() => {
-          navigation.navigate('ViewOrder', {orderDetail: order});
+          navigation.navigate('ViewOrder', {id: order.id});
         }}
         style={{backgroundColor: ThemeColor.whiteColor}}
         key={i}>
@@ -397,7 +399,7 @@ const AllOrderView = ({navigation}) => {
                 handleFilter(val);
               }}
               placeholder="All"
-              label="Shpping Status"
+              label="Shipping Status"
               getNullval
               onDonePress={() => {}}
             />
@@ -462,10 +464,13 @@ const AllOrderView = ({navigation}) => {
                 marginTop: 15,
               }}>
               <TouchableOpacity
-                onPress={() => { setFillter('');
-                  setPaymentFillter('');
-                  setFrom('');
-                  setTo('');bottomSheetModalRef.current?.dismiss()}}
+                onPress={() => {
+                  appliedFilters[0] ? null : setFillter('');
+                  appliedFilters[1] ? null : setPaymentFillter('');
+                  appliedFilters[2] ? null : setFrom('');
+                  appliedFilters[3] ? null : setTo('');
+                  bottomSheetModalRef.current?.dismiss();
+                }}
                 style={styles.cancelBtn}>
                 <Text style={{color: '#fff', fontSize: 16}}>Cancel</Text>
               </TouchableOpacity>
@@ -475,24 +480,6 @@ const AllOrderView = ({navigation}) => {
                 <Text style={{color: '#fff', fontSize: 16}}>Apply Filter</Text>
               </TouchableOpacity>
             </View>
-            {/* {paymentstatus || shippingstatus || startDate || endDate ? (
-              <TouchableOpacity
-                onPress={() => handleClear()}
-                style={{
-                  marginTop: 5,
-                  alignSelf: 'center',
-                  width: '45%',
-                  paddingVertical: 10,
-                  backgroundColor: ThemeColor.grayColor,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  borderRadius: 8,
-                }}>
-                <Text style={{color: '#fff', fontSize: 16}}>Clear Filter</Text>
-              </TouchableOpacity>
-            ) : (
-              ''
-            )} */}
           </ScrollView>
         </BottomSheetModal>
       </OrdersWrapper>

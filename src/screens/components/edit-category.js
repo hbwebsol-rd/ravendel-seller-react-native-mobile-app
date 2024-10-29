@@ -233,7 +233,6 @@ const EditCategoriesComponent = ({
                 <TouchableOpacity
                   className="toggle-icon"
                   onPress={() => {
-                    console.log('ddd');
                     collapseToggle(cat);
                   }}>
                   {collapseCategory[cat.id] ? (

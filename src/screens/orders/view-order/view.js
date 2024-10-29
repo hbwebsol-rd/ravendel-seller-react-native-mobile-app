@@ -22,17 +22,21 @@ import BottomDivider from '../../components/bottom-divider';
 import moment from 'moment';
 import {useQuery} from '@apollo/client';
 import {GET_ORDER} from '../../../queries/orderQueries';
-import {capitalizeFirstLetter, formatCurrency, isEmpty} from '../../../utils/helper';
+import {
+  capitalizeFirstLetter,
+  formatCurrency,
+  isEmpty,
+} from '../../../utils/helper';
 import {Text} from '@rneui/base';
 import AppLoader from '../../components/loader';
 import {useSelector} from 'react-redux';
 import {View} from 'react-native';
 
-const OrderView = ({navigation, orderDetail}) => {
-  console.log(orderDetail.id);
+const OrderView = ({navigation, orderDetail, id}) => {
+  // console.log(orderDetail.id);
   const {loading, error, data, refetch} = useQuery(GET_ORDER, {
     notifyOnNetworkStatusChange: true,
-    variables: {id: orderDetail.id},
+    variables: {id: id},
   });
   const {currencyOptions, currencySymbol} = useSelector(
     state => state.dashboard,
@@ -55,24 +59,26 @@ const OrderView = ({navigation, orderDetail}) => {
         <OrderViewCardTitle>Order Info</OrderViewCardTitle>
         <OrderInfoRow>
           <OrderInfoLabel>Order No.</OrderInfoLabel>
-          <OrderInfoVal>{orderDetail.orderNumber}</OrderInfoVal>
+          <OrderInfoVal>{orderData?.orderNumber}</OrderInfoVal>
         </OrderInfoRow>
         <OrderInfoRow>
           <OrderInfoLabel>Date</OrderInfoLabel>
           <OrderInfoVal>
-            {moment(orderDetail.date).format('MMMM D, YYYY')}
+            {moment(orderData?.date).format('MMMM D, YYYY')}
           </OrderInfoVal>
         </OrderInfoRow>
         <OrderInfoRow>
           <OrderInfoLabel>Payment Status</OrderInfoLabel>
           <OrderInfoVal>
-            {console.log(JSON.stringify(orderDetail))}
-            {capitalizeFirstLetter(orderDetail.paymentStatus)}
+            {console.log(JSON.stringify(orderData))}
+            {capitalizeFirstLetter(orderData?.paymentStatus)}
           </OrderInfoVal>
         </OrderInfoRow>
         <OrderInfoRow>
           <OrderInfoLabel>Shipping Status</OrderInfoLabel>
-          <OrderInfoVal>{capitalizeFirstLetter(orderDetail.shippingStatus)}</OrderInfoVal>
+          <OrderInfoVal>
+            {capitalizeFirstLetter(orderData?.shippingStatus)}
+          </OrderInfoVal>
         </OrderInfoRow>
         {/* <OrderInfoRow>
           <OrderInfoLabel>Total</OrderInfoLabel>
@@ -86,7 +92,9 @@ const OrderView = ({navigation, orderDetail}) => {
         </OrderInfoRow> */}
         <OrderInfoRow>
           <OrderInfoLabel>Payment Method</OrderInfoLabel>
-          <OrderInfoVal>{capitalizeFirstLetter(orderDetail.billing.paymentMethod)} </OrderInfoVal>
+          <OrderInfoVal>
+            {capitalizeFirstLetter(orderData?.billing?.paymentMethod)}{' '}
+          </OrderInfoVal>
         </OrderInfoRow>
       </OrderViewCard>
 
@@ -127,9 +135,12 @@ const OrderView = ({navigation, orderDetail}) => {
                 <Text>{item.productTitle}</Text>
                 <View style={{flexDirection: 'row'}}>
                   <Text>
-                    {formatCurrency(item.productPrice, currencyOptions, currencySymbol)}
+                    {formatCurrency(
+                      item.productPrice,
+                      currencyOptions,
+                      currencySymbol,
+                    )}
                   </Text>
-                  {console.log(item,'popppp')}
                   <Text style={{marginLeft: 8}}>x{item.qty}</Text>
                 </View>
               </OrderDetailLeftCol>
@@ -153,6 +164,7 @@ const OrderView = ({navigation, orderDetail}) => {
         <OrderAmountRow>
           <OrderAmountLabel>Discount on MRP</OrderAmountLabel>
           <OrderAmountValue>
+            -
             {formatCurrency(
               orderData?.totalSummary?.discountTotal,
               currencyOptions,
@@ -176,7 +188,7 @@ const OrderView = ({navigation, orderDetail}) => {
         <OrderAmountRow>
           <OrderAmountLabel>Shipping</OrderAmountLabel>
           <OrderAmountValue>
-            {console.log(orderData?.totalSummary?.totalTax)}
+            {/* {console.log(orderData?.totalSummary?.totalTax)} */}
             {orderData?.totalSummary?.totalShipping > 0
               ? formatCurrency(
                   orderData?.totalSummary?.totalShipping,

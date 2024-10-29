@@ -54,7 +54,7 @@ const AddAttrView = ({navigation}) => {
       setValdiation({
         ...validation,
         name: '',
-        value: 'Attribute should contain only letters and numbers',
+        value: 'Attribute can only contain  letters and numbers',
       });
     } else {
       setValdiation({

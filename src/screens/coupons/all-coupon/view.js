@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {Alert, FlatList, StyleSheet, Text, View} from 'react-native';
 import {
   CouponCardWrapper,
@@ -24,7 +24,7 @@ import {GraphqlError, GraphqlSuccess} from '../../components/garphqlMessages';
 import moment from 'moment';
 import {useSelector} from 'react-redux';
 import {formatCurrency} from '../../../utils/helper';
-import { Input } from '@rneui/base';
+import {Input} from '@rneui/base';
 
 const AllCouponsView = ({navigation}) => {
   const isFocused = useIsFocused();
@@ -37,12 +37,32 @@ const AllCouponsView = ({navigation}) => {
   const [inpvalue, setInpvalue] = useState('');
 
   useEffect(() => {
-    if (data && data?.coupons?.data)
-      setAllCoupon(data?.coupons?.data);
+    if (data && data?.coupons?.data) setAllCoupon(data?.coupons?.data);
   }, [data]);
 
   const handleinpiut = e => {
     setInpvalue(e);
+  };
+
+  useEffect(() => {
+    applyFilter();
+  }, [inpvalue]);
+
+  const applyFilter = () => {
+    const filterdata =
+      data &&
+      data?.coupons?.data.filter(data => {
+        const matchesSearch = inpvalue
+          ? String(data.code).toLowerCase().includes(inpvalue.toLowerCase())
+          : true;
+        const matchesdiscount = inpvalue
+          ? String(data.discountValue)
+              .toLowerCase()
+              .includes(inpvalue.toLowerCase())
+          : true;
+        return matchesSearch && matchesdiscount;
+      });
+    setAllCoupon(filterdata);
   };
 
   const [deleteCoupon, {loading: deleteLoading}] = useMutation(DELETE_COUPON, {
@@ -52,6 +72,7 @@ const AllCouponsView = ({navigation}) => {
     },
     onCompleted: data => {
       // Handle completion
+      GraphqlSuccess('Deleted successfully');
       console.log('Deleted successfully');
       refetch();
     },
@@ -71,7 +92,6 @@ const AllCouponsView = ({navigation}) => {
     console.error(error);
     return <Text>Something went wrong. Please try again later</Text>;
   }
-
 
   const Item = ({coupon, i}) => (
     <>
@@ -126,12 +146,11 @@ const AllCouponsView = ({navigation}) => {
                     },
                     {
                       text: 'OK',
-                      onPress: () =>
-                      {
+                      onPress: () => {
                         deleteCoupon({
                           variables: {id: coupon.id},
-                        })
-                      }
+                        });
+                      },
                     },
                   ],
                   {cancelable: false},
@@ -148,7 +167,7 @@ const AllCouponsView = ({navigation}) => {
   const renderItem = ({item, i}) => <Item coupon={item} i={i} />;
 
   return (
-     <View style={{flex: 1}}>
+    <View style={{flex: 1}}>
       <View
         style={{
           flexDirection: 'row',
@@ -175,30 +194,30 @@ const AllCouponsView = ({navigation}) => {
       </View>
       <CouponCardWrapper>
         {deleteLoading ? <AppLoader /> : null}
-          <>
-            <FlatList
-              initialNumToRender={10}
-              keyboardShouldPersistTaps="always"
-              showsVerticalScrollIndicator={false}
-              // refreshControl={
-              //   <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-              // }
-              data={allCoupon}
-              renderItem={renderItem}
-              ListEmptyComponent={() => (
-                <View>
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      alignSelf: 'center',
-                      color: 'grey',
-                    }}>
-                    No Records Found
-                  </Text>
-                </View>
-              )}
-            />
-          </>
+        <>
+          <FlatList
+            initialNumToRender={10}
+            keyboardShouldPersistTaps="always"
+            showsVerticalScrollIndicator={false}
+            // refreshControl={
+            //   <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            // }
+            data={allCoupon}
+            renderItem={renderItem}
+            ListEmptyComponent={() => (
+              <View>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    alignSelf: 'center',
+                    color: 'grey',
+                  }}>
+                  No Records Found
+                </Text>
+              </View>
+            )}
+          />
+        </>
       </CouponCardWrapper>
     </View>
   );

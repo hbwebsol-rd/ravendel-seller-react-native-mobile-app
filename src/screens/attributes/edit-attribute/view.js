@@ -69,15 +69,15 @@ const EditAttrView = ({navigation, singleAttrID}) => {
     },
   );
   const updateAttrSubmit = () => {
-    if (attribute.name === '') {
+    if (isEmpty(attribute.name)) {
       setValdiation({...validation, name: 'Name is required'});
-    } else if (attribute.value === '') {
+    } else if (isEmpty(attribute.value)) {
       setValdiation({...validation, name: '', value: 'Value is required'});
     } else if (!SPECIAL_CHARACTER_REGEX.test(attribute.value)) {
       setValdiation({
         ...validation,
         name: '',
-        value: 'Attribute should contain only letters and numbers',
+        value: 'Attribute can only contain  letters and numbers',
       });
     } else {
       setValdiation({
